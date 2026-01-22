@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome Back</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="glass-card">
+            <div class="form-container" id="login-form">
+                <div class="header">
+                    <h1 id="form-title">Welcome Back</h1>
+                    <p id="form-subtitle">Enter your details to access your account</p>
+                </div>
+
+                <form id="authForm">
+                    <!-- Signup Fields (Hidden by default) -->
+                    <div id="signup-fields" style="display: none;">
+                        <div class="input-group">
+                            <label for="signup-name">Full Name</label>
+                            <input type="text" id="signup-name" placeholder="John Doe">
+                        </div>
+                        <div class="input-group">
+                            <label for="signup-email">Email Address</label>
+                            <input type="email" id="signup-email" placeholder="john@example.com">
+                        </div>
+                    </div>
+
+                    <!-- Common/Login Fields -->
+                    <div class="input-group">
+                        <label for="login-identifier" id="identifier-label">WhatsApp Number or Email</label>
+                        <input type="text" id="login-identifier" placeholder="Enter mobile or email" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" placeholder="••••••••" required>
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="submit-btn">Sign In</button>
+
+                    <p style="text-align: center; margin-top: 1rem; cursor: pointer; opacity: 0.8;" id="toggle-auth">
+                        New user? <span style="color: #4f46e5; font-weight: bold;">Sign Up</span>
+                    </p>
+                    <div class="admin-link-container"
+                        style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+                        <a href="#" id="forgot-password-link"
+                            style="color: #4f46e5; text-decoration: none; font-size: 0.9rem;">Forgot Password?</a>
+                        <a href="/admin.html" class="admin-link">Admin Dashboard</a>
+                    </div>
+                </form>
+
+
+                <!-- Forgot Password Request Form (Hidden) -->
+                <div class="form-container" id="forgot-password-form" style="display: none;">
+                    <div class="header">
+                        <h1>Reset Password</h1>
+                        <p>Enter your email to receive a reset link</p>
+                    </div>
+                    <form id="resetRequestForm">
+                        <div class="input-group">
+                            <label for="reset-email">Email Address</label>
+                            <input type="email" id="reset-email" placeholder="Enter your registered email" required>
+                        </div>
+                        <button type="submit" class="btn-primary" id="reset-btn">Send Reset Link</button>
+                        <p style="text-align: center; margin-top: 1rem; cursor: pointer; opacity: 0.8;"
+                            id="back-to-login">
+                            <span style="color: #4f46e5; font-weight: bold;">Back to Login</span>
+                        </p>
+                    </form>
+                </div>
+            </div>
+
+            <div id="message" class="message hidden"></div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>

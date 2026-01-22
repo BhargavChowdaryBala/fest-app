@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Ticket - FestOrders</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(45deg, #1a1a1a, #2c3e50, #1a1a1a);
+            font-family: 'Outfit', sans-serif;
+            color: white;
+        }
+
+        .glass-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            z-index: 1000;
+            padding: 1rem 2rem;
+            box-sizing: border-box;
+        }
+
+        .nav-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            padding: 2rem;
+            box-sizing: border-box;
+            margin-top: 80px;
+            /* Increased top margin for nav */
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+                margin-top: 70px;
+            }
+
+            .glass-card {
+                padding: 1.5rem;
+            }
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        input:focus {
+            border-color: #4f46e5;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .action-btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-bottom: 1rem;
+        }
+
+        .check-btn {
+            background: #4f46e5;
+        }
+
+        .check-btn:hover {
+            background: #4338ca;
+        }
+
+        .mark-btn {
+            background: #F59E0B;
+        }
+
+        .mark-btn:hover {
+            background: #D97706;
+        }
+
+        .status-message {
+            margin-top: 1rem;
+            font-weight: bold;
+            min-height: 24px;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="glass-nav">
+        <div class="nav-content">
+            <span class="logo">🎟️ Verify Ticket</span>
+            <a href="/hi.html" class="back-btn">Back to Menu</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="glass-card">
+            <h1 style="margin-top: 0;">Check Ticket Status</h1>
+            <p style="opacity: 0.8; margin-bottom: 2rem;">Enter the Fest ID below to verify authenticity</p>
+
+            <div class="input-group">
+                <label for="fest-id">Fest ID</label>
+                <input type="text" id="fest-id" placeholder="e.g. FEST-1234">
+            </div>
+
+            <button class="action-btn check-btn" id="check-btn">Check Status</button>
+            <button class="action-btn mark-btn" id="mark-btn">Mark as Used</button>
+            <div id="status-message" class="status-message"></div>
+        </div>
+    </div>
+
+    <script>
+        const statusMessage = document.getElementById('status-message');
+        const checkBtn = document.getElementById('check-btn');
+        const markBtn = document.getElementById('mark-btn');
+        const festIdInput = document.getElementById('fest-id');
+
+        function showStatus(msg, color = 'white') {
+            statusMessage.textContent = msg;
+            statusMessage.style.color = color;
+            // Clear after 5 seconds
+            setTimeout(() => {
+                statusMessage.textContent = '';
+            }, 5000);
+        }
+
+        async function checkId() {
+            const uniqueId = festIdInput.value.trim();
+            if (!uniqueId) {
+                showStatus('Please enter a Fest ID', '#ff4444');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/check-id', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ uniqueId })
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    const color = data.status === 'unused' ? '#25D366' : '#EA4335';
+                    showStatus(`Status: ${data.status.toUpperCase()}`, color);
+                } else {
+                    showStatus(data.message, '#ff4444');
+                }
+            } catch (error) {
+                showStatus('Error checking ID', '#ff4444');
+            }
+        }
+
+        async function markUsed() {
+            const uniqueId = festIdInput.value.trim();
+            if (!uniqueId) {
+                showStatus('Please enter a Fest ID', '#ff4444');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/mark-used', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ uniqueId })
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    showStatus('Success: Marked as used', '#25D366');
+                } else {
+                    showStatus(data.message, '#ff4444');
+                }
+            } catch (error) {
+                showStatus('Error marking ID', '#ff4444');
+            }
+        }
+
+        checkBtn.addEventListener('click', checkId);
+        markBtn.addEventListener('click', markUsed);
+    </script>
+</body>
+
+</html>

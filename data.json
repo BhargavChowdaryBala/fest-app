@@ -1,0 +1,11 @@
+{
+    "items": [
+        {
+            "name": "strawberry",
+            "price": 35
+        }
+    ],
+    "totalAmount": 35,
+    "mobileNumber": "9876543210",
+    "email": "test@example.com"
+}

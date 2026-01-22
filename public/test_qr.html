@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test QR Code</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #1a1a1a;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        img {
+            margin: 1rem 0;
+            border-radius: 8px;
+            border: 5px solid white;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            background: #6366f1;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            margin-top: 1rem;
+        }
+
+        button:hover {
+            background: #4f46e5;
+        }
+
+        .success {
+            color: #25D366;
+            font-weight: bold;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="card">
+        <h1>Scanner Test</h1>
+        <p>Scan this code with your mobile:</p>
+
+        <!-- QR Code Image -->
+        <img id="qrImage" src="" alt="QR Code" width="200" height="200">
+
+        <h2 id="festIdDisplay">...</h2>
+        <div id="status">Generating valid ID...</div>
+
+        <button onclick="generateNewTest()">Generate New Test ID</button>
+    </div>
+
+    <script>
+        // generate a random test ID
+        async function generateNewTest() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = "Creating order in database...";
+            statusDiv.style.color = "#fbbf24"; // Yellow
+
+            // 1. Create a dummy order so the ID is valid in the DB
+            const testItems = [{ name: "Test Item", price: 10 }];
+
+            try {
+                const res = await fetch('/api/generate-id', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        items: testItems,
+                        totalAmount: 10,
+                        mobileNumber: "9999999999", // Valid 10 digit
+                        email: "test@example.com"
+                    })
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    const id = data.uniqueId;
+                    document.getElementById('festIdDisplay').textContent = id;
+
+                    // 2. Generate QR for it using public API
+                    // Using api.qrserver.com for instant QR generation
+                    document.getElementById('qrImage').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${id}`;
+
+                    statusDiv.textContent = "✅ Valid Order Created. Ready to Scan!";
+                    statusDiv.style.color = "#25D366";
+                } else {
+                    statusDiv.textContent = "Error: " + (data.message || "Failed");
+                    statusDiv.style.color = "#ff4444";
+                }
+
+            } catch (err) {
+                console.error(err);
+                statusDiv.textContent = "Network Error";
+            }
+        }
+
+        // Run on load
+        generateNewTest();
+    </script>
+</body>
+
+</html>
