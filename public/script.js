@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isLogin) {
             // LOGIN FLOW
             try {
-                const res = await fetch('/api/login', {
+                const res = await fetch(`${config.API_BASE_URL}/api/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ identifier, password })
@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Sending Signup Payload:', JSON.stringify(payload));
 
             try {
-                const res = await fetch('/api/signup', {
+                const res = await fetch(`${config.API_BASE_URL}/api/signup`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -175,7 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
             clearMessage();
 
             try {
-                const res = await fetch('/api/forgot-password', {
+                const res = await fetch(`${config.API_BASE_URL}/api/forgot-password`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email })

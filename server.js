@@ -23,7 +23,11 @@ const transporter = nodemailer.createTransport({
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: '*', // Allow all origins for now (simplifies Vercel deployment)
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-pin']
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // Required for PhonePe Callback
 // Handle JSON Parse errors

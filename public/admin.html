@@ -7,6 +7,7 @@
     <title>Admin Dashboard - FestOrders</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script src="config.js"></script>
     <style>
         body {
             margin: 0;
@@ -509,7 +510,7 @@
 
         async function fetchOrders() {
             try {
-                const res = await fetch('/api/orders', {
+                const res = await fetch(`${config.API_BASE_URL}/api/orders`, {
                     headers: { 'x-admin-pin': adminPin }
                 });
 
@@ -643,7 +644,7 @@
             }
 
             try {
-                const res = await fetch('/api/items', {
+                const res = await fetch(`${config.API_BASE_URL}/api/items`, {
                     method: 'POST',
                     body: formData // No headers needed, browser sets multipart/form-data
                 });
@@ -676,7 +677,7 @@
 
         async function fetchItemsForDelete() {
             try {
-                const res = await fetch('/api/items');
+                const res = await fetch(`${config.API_BASE_URL}/api/items`);
                 const items = await res.json();
 
                 deleteList.innerHTML = '';
@@ -704,7 +705,7 @@
             if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
 
             try {
-                const res = await fetch(`/api/items/${id}`, {
+                const res = await fetch(`${config.API_BASE_URL}/api/items/${id}`, {
                     method: 'DELETE'
                 });
 
@@ -775,7 +776,7 @@
             // html5QrcodeScanner.pause(); 
 
             try {
-                const res = await fetch('/api/mark-used', {
+                const res = await fetch(`${config.API_BASE_URL}/api/mark-used`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ uniqueId: decodedText })
