@@ -157,7 +157,9 @@ app.post('/api/forgot-password', async (req, res) => {
         await user.save();
 
         // Send Email
-        const resetUrl = `http://${req.headers.host}/reset-password.html?token=${token}`;
+        const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+        const host = req.get('host');
+        const resetUrl = `${protocol}://${host}/reset-password.html?token=${token}`;
         console.log('--- PASSWORD RESET DEBUG ---');
         console.log(`Reset Link for ${user.email}: ${resetUrl}`);
         console.log('----------------------------');

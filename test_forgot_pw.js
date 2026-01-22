@@ -1,7 +1,7 @@
 const axios = require('axios');
 
 async function testForgotPassword() {
-    const baseURL = 'http://localhost:3005/api/forgot-password';
+    const baseURL = 'http://localhost:3000/api/forgot-password';
 
     // Test Case 1: Legacy User (should fail with specific message)
     try {
