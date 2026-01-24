@@ -9,36 +9,22 @@
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap"
-    rel="stylesheet"
-  />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-  <!-- Main Styles -->
+  <!-- Styles -->
   <link rel="stylesheet" href="style.css" />
-  <link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
-  />
 
-  <!-- 🔥 FINAL PASSWORD VISIBILITY FIX (MUST BE AFTER style.css) -->
   <style>
-    /* Disable any CSS-based password masking */
-    #login-password {
-      -webkit-text-security: none !important;
-      text-security: none !important;
-    }
-
-    /* Remove browser default reveal icons */
+    /* Disable browser built-in reveal icons */
     input[type="password"]::-ms-reveal,
     input[type="password"]::-ms-clear {
-      display: none !important;
+      display: none;
     }
 
     input[type="password"]::-webkit-credentials-auto-fill-button,
     input[type="password"]::-webkit-textfield-decoration-container {
-      display: none !important;
-      visibility: hidden !important;
+      display: none;
+      visibility: hidden;
     }
   </style>
 </head>
@@ -46,6 +32,8 @@
 <body>
   <div class="container">
     <div class="glass-card">
+
+      <!-- LOGIN FORM -->
       <div class="form-container" id="login-form">
         <div class="header">
           <h1 id="form-title">Welcome Back</h1>
@@ -79,34 +67,15 @@
             />
           </div>
 
-          <!-- Password -->
+          <!-- PASSWORD (NO EYE ICON) -->
           <div class="input-group">
             <label for="login-password">Password</label>
-
-            <div style="position: relative;">
-              <input
-                type="password"
-                id="login-password"
-                placeholder="••••••••"
-                required
-                style="width: 100%; padding-right: 44px;"
-              />
-
-              <i
-                class="bi bi-eye-slash"
-                id="togglePassword"
-                style="
-                  position: absolute;
-                  right: 12px;
-                  top: 50%;
-                  transform: translateY(-50%);
-                  cursor: pointer;
-                  color: #ffffff;
-                  font-size: 1.2rem;
-                  z-index: 10;
-                "
-              ></i>
-            </div>
+            <input
+              type="password"
+              id="login-password"
+              placeholder="••••••••"
+              required
+            />
           </div>
 
           <button type="submit" class="btn-primary" id="submit-btn">
@@ -132,17 +101,15 @@
             >
               Forgot Password?
             </a>
-            <a href="/admin.html" class="admin-link">Admin Dashboard</a>
+            <a href="/admin.html" class="admin-link">
+              Admin Dashboard
+            </a>
           </div>
         </form>
       </div>
 
-      <!-- Forgot Password -->
-      <div
-        class="form-container"
-        id="forgot-password-form"
-        style="display: none;"
-      >
+      <!-- FORGOT PASSWORD -->
+      <div class="form-container" id="forgot-password-form" style="display: none;">
         <div class="header">
           <h1>Reset Password</h1>
           <p>Enter your email to receive a reset link</p>
@@ -178,8 +145,8 @@
     </div>
   </div>
 
-  <!-- Script -->
+  <!-- JS -->
   <script src="./script.js" defer></script>
 </body>
-
 </html>
+
