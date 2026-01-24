@@ -2,6 +2,16 @@
 <html lang="en">
 
 <head>
+    <script>
+  const token = localStorage.getItem('token');
+  const user = localStorage.getItem('user');
+
+  if (!token || !user) {
+    // Not logged in → kick back to login
+    window.location.href = '/index.html';
+  }
+</script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Menu Items</title>
