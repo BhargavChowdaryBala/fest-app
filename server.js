@@ -1,5 +1,7 @@
 require('dotenv').config();
 const express = require('express');
+const path = require('path');
+const fs = require('fs');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
@@ -50,9 +52,18 @@ app.get('/api/config', (req, res) => {
     });
 });
 
+// --- STATIC FILES (Render-safe) ---
+const uploadsPath = path.join(__dirname, 'public/uploads');
+
+// Ensure uploads directory exists (CRITICAL for Render)
+if (!fs.existsSync(uploadsPath)) {
+    fs.mkdirSync(uploadsPath, { recursive: true });
+}
+
+// Serve frontend + uploads
 app.use(express.static('public'));
-app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
- // Serve frontend files
+app.use('/uploads', express.static(uploadsPath));
+
 
 const ADMIN_PIN = process.env.ADMIN_DASHBOARD_PASSWORD || "1234"; // Use .env or fallback
 
@@ -253,7 +264,7 @@ app.post('/api/generate-id', async (req, res) => {
 
 // --- ITEMS API ---
 
-const path = require('path');
+
 const multer = require('multer');
 
 // Configure Multer Storage
@@ -268,12 +279,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-// Ensure upload directory exists (optional safety check, but 'public/uploads' should exist or be created)
-const fs = require('fs');
-const uploadDir = 'public/uploads';
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-}
+
 
 // Get All Items
 app.get('/api/items', async (req, res) => {
