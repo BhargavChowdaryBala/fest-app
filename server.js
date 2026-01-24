@@ -50,7 +50,9 @@ app.get('/api/config', (req, res) => {
     });
 });
 
-app.use(express.static('public')); // Serve frontend files
+app.use(express.static('public'));
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+ // Serve frontend files
 
 const ADMIN_PIN = process.env.ADMIN_DASHBOARD_PASSWORD || "1234"; // Use .env or fallback
 
