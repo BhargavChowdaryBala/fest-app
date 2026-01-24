@@ -1,10 +1,3 @@
-<script>
-const BACKEND_URL = "https://fest-app-backend.onrender.com";
-const getApiUrl = (endpoint) => `${BACKEND_URL}${endpoint}`;
-</script>
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -15,6 +8,11 @@ const getApiUrl = (endpoint) => `${BACKEND_URL}${endpoint}`;
     <link rel="icon" href="logo.jpg">
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script>
+      const BACKEND_URL = "https://fest-app-backend.onrender.com";
+      const getApiUrl = (endpoint) => `${BACKEND_URL}${endpoint}`;
+    </script>
+
     <style>
         body {
             margin: 0;
