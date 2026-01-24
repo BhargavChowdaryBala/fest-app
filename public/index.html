@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 </head>
 
 <body>
@@ -41,7 +42,12 @@
 
                     <div class="input-group">
                         <label for="login-password">Password</label>
-                        <input type="password" id="login-password" placeholder="••••••••" required>
+                        <div style="position: relative;">
+                            <input type="password" id="login-password" placeholder="••••••••" required
+                                style="width: 100%; padding-right: 40px;">
+                            <i class="bi bi-eye-slash" id="togglePassword"
+                                style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #94a3b8; font-size: 1.2rem;"></i>
+                        </div>
                     </div>
 
                     <button type="submit" class="btn-primary" id="submit-btn">Sign In</button>
@@ -81,7 +87,6 @@
             <div id="message" class="message hidden"></div>
         </div>
     </div>
-    <script src="config.js"></script>
     <script src="script.js"></script>
 </body>
 

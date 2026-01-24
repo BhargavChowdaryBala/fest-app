@@ -8,7 +8,7 @@ const orderSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['unused', 'used'],
+        enum: ['unused', 'used', 'paid'],
         default: 'unused'
     },
     items: [{

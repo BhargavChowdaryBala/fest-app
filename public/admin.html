@@ -5,9 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - FestOrders</title>
+    <link rel="icon" href="logo.jpg">
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-    <script src="config.js"></script>
     <style>
         body {
             margin: 0;
@@ -490,6 +490,11 @@
     </div>
 
     <script>
+        // --- API CONFIGURATION ---
+        // Change this URL to your Render Backend URL when deploying!
+        const BACKEND_URL = "";
+        const getApiUrl = (endpoint) => `${BACKEND_URL}${endpoint}`;
+
         let adminPin = localStorage.getItem('admin_pin');
         let allOrders = []; // Store orders for search/export
 
@@ -510,7 +515,7 @@
 
         async function fetchOrders() {
             try {
-                const res = await fetch(`${config.API_BASE_URL}/api/orders`, {
+                const res = await fetch(getApiUrl('/api/orders'), {
                     headers: { 'x-admin-pin': adminPin }
                 });
 
@@ -644,7 +649,7 @@
             }
 
             try {
-                const res = await fetch(`${config.API_BASE_URL}/api/items`, {
+                const res = await fetch(getApiUrl('/api/items'), {
                     method: 'POST',
                     body: formData // No headers needed, browser sets multipart/form-data
                 });
@@ -677,7 +682,7 @@
 
         async function fetchItemsForDelete() {
             try {
-                const res = await fetch(`${config.API_BASE_URL}/api/items`);
+                const res = await fetch(getApiUrl('/api/items'));
                 const items = await res.json();
 
                 deleteList.innerHTML = '';
@@ -705,7 +710,7 @@
             if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
 
             try {
-                const res = await fetch(`${config.API_BASE_URL}/api/items/${id}`, {
+                const res = await fetch(getApiUrl(`/api/items/${id}`), {
                     method: 'DELETE'
                 });
 
@@ -776,7 +781,7 @@
             // html5QrcodeScanner.pause(); 
 
             try {
-                const res = await fetch(`${config.API_BASE_URL}/api/mark-used`, {
+                const res = await fetch(getApiUrl('/api/mark-used'), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ uniqueId: decodedText })

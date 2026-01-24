@@ -8,10 +8,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="logo.jpg">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="config.js"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <style>
         body {
             display: flex;
@@ -304,7 +305,11 @@
     <nav class="glass-nav">
         <div class="nav-content">
             <div class="nav-header">
-                <span class="logo">🎉 FestOrders</span>
+                <span class="logo" style="display: flex; align-items: center; gap: 10px;">
+                    <img src="logo.jpg" alt="Logo"
+                        style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover;">
+                    FestOrders
+                </span>
                 <button class="hamburger-btn" id="mobile-menu-btn" onclick="toggleMenu()">
                     <i class="bi bi-list"></i>
                     <span id="hamburger-badge" class="hamburger-badge"></span>
@@ -580,6 +585,14 @@
         const itemsGrid = document.getElementById('items-grid');
         const payBtn = document.getElementById('pay-btn');
 
+        // --- API CONFIGURATION ---
+        // Change this URL to your Render Backend URL when deploying!
+        // If empty, it assumes backend is on the same domain (good for localhost or single-server deployment)
+        const BACKEND_URL = "";
+
+        // Helper to construct full URL
+        const getApiUrl = (endpoint) => `${BACKEND_URL}${endpoint}`;
+
         let cart = {}; // { ItemName: { price: 100, qty: 1 } }
         let allItems = []; // Store fetched items
 
@@ -601,7 +614,7 @@
         // Fetch Items
         async function loadItems() {
             try {
-                const res = await fetch(`${config.API_BASE_URL}/api/items`);
+                const res = await fetch(getApiUrl('/api/items'));
                 const items = await res.json();
                 allItems = items;
 
@@ -871,53 +884,19 @@
         const payNowLink = document.getElementById('pay-now-link');
 
         // Config variables
-        let UPI_ID = "example@upi";
         let MERCHANT_NAME = "FestOrders";
+        let RAZORPAY_KEY_ID = "";
 
         // Fetch Config
-        // Fetch Config
-        fetch('/api/config')
+        fetch(getApiUrl('/api/config'))
             .then(res => res.json())
             .then(config => {
-                if (config.upiId) UPI_ID = config.upiId;
                 if (config.merchantName) MERCHANT_NAME = config.merchantName;
-                document.getElementById('upi-display').value = UPI_ID; // Update Display
+                if (config.razorpayKeyId) RAZORPAY_KEY_ID = config.razorpayKeyId;
                 console.log('Payment Config Loaded');
             })
             .catch(err => console.error('Failed to load config', err));
 
-        window.copyUpiId = function () {
-            navigator.clipboard.writeText(UPI_ID).then(() => {
-                const btn = document.querySelector('button[onclick="copyUpiId()"]');
-                const originalText = btn.innerHTML;
-                btn.innerHTML = '<i class="bi bi-check-lg"></i> Copied!';
-                btn.style.background = '#16a34a';
-                setTimeout(() => {
-                    btn.innerHTML = originalText;
-                    btn.style.background = '#2563eb';
-                }, 2000);
-            });
-        };
-
-        function openPaymentModal(total) {
-            paymentModal.classList.add('active');
-
-            // Construct UPI Deep Link
-            // Remove 'pn' and 'tn' to avoid "Risk Policy" blocks (Name mismatch triggers this)
-            // Just sending PA (Address) and AM (Amount) is the safest way for personal accounts.
-            const upiLink = `upi://pay?pa=${UPI_ID}&am=${total}&cu=INR`;
-
-            // Set Link
-            payNowLink.href = upiLink;
-
-            // Generate QR
-            paymentQrContainer.innerHTML = "";
-            new QRCode(paymentQrContainer, {
-                text: upiLink,
-                width: 150,
-                height: 150
-            });
-        }
 
 
 
@@ -960,10 +939,16 @@
         };
 
 
-        async function generateOrder() {
+        // New Razorpay Checkout Flow
+        async function initiateRazorpayPayment() {
             const total = updateTotal();
             if (Object.keys(cart).length === 0) {
                 alert('Cart is empty!');
+                return;
+            }
+
+            if (!RAZORPAY_KEY_ID) {
+                alert('Payment Gateway Error: Key not found. Please contact admin.');
                 return;
             }
 
@@ -971,62 +956,124 @@
             const userJson = localStorage.getItem('user');
             let mobileNumber = "-";
             let email = "-";
+            let name = "Guest";
 
             if (userJson) {
                 try {
                     const user = JSON.parse(userJson);
-                    mobileNumber = user.whatsappNumber || "-";
-                    email = user.email || "-";
+                    mobileNumber = user.whatsappNumber || "9999999999";
+                    email = user.email || "guest@example.com";
+                    name = user.name || "Guest";
                 } catch (e) { console.error(e); }
             }
 
-            const finalItems = [];
-            Object.entries(cart).forEach(([name, details]) => {
-                finalItems.push({
-                    name: `${name} (x${details.qty})`,
-                    price: details.price * details.qty
-                });
-            });
-
-            // Prevent double click
-            checkoutBtn.innerHTML = 'Placing Order...';
+            checkoutBtn.innerHTML = 'Processing...';
             checkoutBtn.disabled = true;
 
             try {
-                const res = await fetch('/api/generate-id', {
+                // 1. Create Order
+                const orderRes = await fetch(getApiUrl('/api/create-razorpay-order'), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        items: finalItems,
-                        totalAmount: total,
-                        mobileNumber,
-                        email,
-                        transactionId: "PAY_LATER"
-                    })
+                    body: JSON.stringify({ amount: total })
                 });
 
-                const data = await res.json();
+                const orderData = await orderRes.json();
 
-                if (res.ok && data.uniqueId) {
-                    alert(`Order Placed!\nYour Order ID: ${data.uniqueId}`);
-                    // Clear cart
-                    cart = {};
-                    saveCart();
-                    updateTotal();
-                    toggleCart(false);
-                } else {
-                    alert(`Failed: ${data?.message || 'Unknown error'}`);
+                if (!orderRes.ok) {
+                    throw new Error(orderData.message || 'Error creating order');
                 }
+
+                // 2. Open Razorpay Options
+                const options = {
+                    "key": RAZORPAY_KEY_ID,
+                    "amount": orderData.amount,
+                    "currency": orderData.currency,
+                    "name": MERCHANT_NAME,
+                    "description": "Order for Fest Items",
+                    "image": "logo.jpg",
+                    "order_id": orderData.id,
+                    "handler": async function (response) {
+
+                        // 3. Verify Payment
+                        checkoutBtn.innerHTML = 'Verifying...';
+
+                        const finalItems = [];
+                        Object.entries(cart).forEach(([name, details]) => {
+                            finalItems.push({
+                                name: `${name} (x${details.qty})`,
+                                price: details.price * details.qty
+                            });
+                        });
+
+                        try {
+                            const verifyRes = await fetch(getApiUrl('/api/verify-payment'), {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    razorpay_order_id: response.razorpay_order_id,
+                                    razorpay_payment_id: response.razorpay_payment_id,
+                                    razorpay_signature: response.razorpay_signature,
+                                    items: finalItems,
+                                    totalAmount: total,
+                                    mobileNumber,
+                                    email
+                                })
+                            });
+
+                            const verifyData = await verifyRes.json();
+
+                            if (verifyRes.ok) {
+                                // Clear cart
+                                cart = {};
+                                saveCart();
+                                updateTotal();
+                                toggleCart(false);
+
+                                alert(`Payment Successful!\nOrder ID: ${verifyData.uniqueId}`);
+                                // Show Ticket
+                                showQRCode(verifyData.uniqueId);
+
+                            } else {
+                                alert('Payment Verification Failed: ' + verifyData.message);
+                            }
+
+                        } catch (err) {
+                            alert('Server Error during verification: ' + err.message);
+                            console.error(err);
+                        } finally {
+                            checkoutBtn.innerHTML = 'Confirm & Pay';
+                            checkoutBtn.disabled = false;
+                        }
+                    },
+                    "prefill": {
+                        "name": name,
+                        "email": email,
+                        "contact": mobileNumber
+                    },
+                    "theme": {
+                        "color": "#6366f1"
+                    }
+                };
+
+                const rzp1 = new Razorpay(options);
+                rzp1.on('payment.failed', function (response) {
+                    alert("Payment Failed: " + response.error.description);
+                    checkoutBtn.innerHTML = 'Confirm & Pay';
+                    checkoutBtn.disabled = false;
+                });
+
+                rzp1.open();
+
             } catch (error) {
-                console.error('Order Error:', error);
-                alert(`Network Error: ${error.message}`);
-            } finally {
+                console.error('Payment Error:', error);
+                alert('Error: ' + error.message);
                 checkoutBtn.innerHTML = 'Confirm & Pay';
                 checkoutBtn.disabled = false;
             }
         }
 
-        checkoutBtn.addEventListener('click', generateOrder);
+        checkoutBtn.addEventListener('click', initiateRazorpayPayment);
 
         document.getElementById('logout-btn').addEventListener('click', () => {
             localStorage.removeItem('token');
@@ -1077,7 +1124,7 @@
                 const mobileNumber = user.whatsappNumber || "-";
                 const email = user.email || "-";
 
-                const res = await fetch('/api/my-orders', {
+                const res = await fetch(getApiUrl('/api/my-orders'), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ mobileNumber, email })

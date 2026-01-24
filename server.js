@@ -10,6 +10,7 @@ const UserDetails = require('./models/UserDetails');
 const Item = require('./models/Item');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
+const Razorpay = require('razorpay');
 
 // Email Transporter Configuration
 const transporter = nodemailer.createTransport({
@@ -20,14 +21,16 @@ const transporter = nodemailer.createTransport({
     }
 });
 
+// Razorpay Instance
+const razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET
+});
+
 const app = express();
 
 // Middleware
-app.use(cors({
-    origin: '*', // Allow all origins for now (simplifies Vercel deployment)
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-pin']
-}));
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // Required for PhonePe Callback
 // Handle JSON Parse errors
@@ -42,14 +45,14 @@ app.use((err, req, res, next) => {
 // Config Endpoint
 app.get('/api/config', (req, res) => {
     res.json({
-        upiId: process.env.UPI_ID,
-        merchantName: process.env.MERCHANT_NAME
+        merchantName: process.env.MERCHANT_NAME,
+        razorpayKeyId: process.env.RAZORPAY_KEY_ID // Send Key ID to frontend
     });
 });
 
 app.use(express.static('public')); // Serve frontend files
 
-const ADMIN_PIN = "1234"; // Simple PIN for demonstration
+const ADMIN_PIN = process.env.ADMIN_DASHBOARD_PASSWORD || "1234"; // Use .env or fallback
 
 // Database Connection
 mongoose.connect(process.env.MONGO_URI, { dbName: 'fest_users' })
@@ -413,6 +416,73 @@ app.post('/api/mark-used', async (req, res) => {
         }
     } catch (error) {
         res.status(500).json({ message: 'Error marking ID', error: error.message });
+    }
+});
+
+
+// --- RAZORPAY API ---
+
+// 1. Create Order
+app.post('/api/create-razorpay-order', async (req, res) => {
+    try {
+        const { amount, currency = 'INR' } = req.body;
+
+        const options = {
+            amount: amount * 100, // Amount in paise
+            currency,
+            receipt: 'receipt_' + Date.now()
+        };
+
+        const order = await razorpay.orders.create(options);
+        res.json(order);
+    } catch (error) {
+        console.error("Razorpay Order Error:", error);
+        res.status(500).json({ message: 'Error creating Razorpay order', error: error.message });
+    }
+});
+
+// 2. Verify Payment & Save Order
+app.post('/api/verify-payment', async (req, res) => {
+    try {
+        const {
+            razorpay_order_id,
+            razorpay_payment_id,
+            razorpay_signature,
+            items,
+            totalAmount,
+            mobileNumber,
+            email
+        } = req.body;
+
+        // Verify Signature
+        const generated_signature = crypto
+            .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+            .update(razorpay_order_id + "|" + razorpay_payment_id)
+            .digest('hex');
+
+        if (generated_signature !== razorpay_signature) {
+            return res.status(400).json({ message: 'Payment verification failed' });
+        }
+
+        // Payment Successful - Create Order
+        const uniqueId = 'FEST-' + Math.floor(1000 + Math.random() * 9000);
+
+        const newOrder = new Order({
+            uniqueId,
+            items,
+            totalAmount, // Assuming this matches payment
+            mobileNumber,
+            email,
+            transactionId: razorpay_payment_id,
+            status: 'paid'
+        });
+
+        await newOrder.save();
+        res.json({ message: 'Payment verified and order created', uniqueId, order: newOrder });
+
+    } catch (error) {
+        console.error("Payment Verification Error:", error);
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
 

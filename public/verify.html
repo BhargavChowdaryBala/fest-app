@@ -184,7 +184,6 @@
         </div>
     </div>
 
-    <script src="config.js"></script>
     <script>
         const statusMessage = document.getElementById('status-message');
         const checkBtn = document.getElementById('check-btn');
@@ -208,7 +207,7 @@
             }
 
             try {
-                const res = await fetch(`${config.API_BASE_URL}/api/check-id`, {
+                const res = await fetch('/api/check-id', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ uniqueId })
@@ -234,7 +233,7 @@
             }
 
             try {
-                const res = await fetch(`${config.API_BASE_URL}/api/mark-used`, {
+                const res = await fetch('/api/mark-used', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ uniqueId })

@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isLogin) {
             // LOGIN FLOW
             try {
-                const res = await fetch(`${config.API_BASE_URL}/api/login`, {
+                const res = await fetch('/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ identifier, password })
@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Sending Signup Payload:', JSON.stringify(payload));
 
             try {
-                const res = await fetch(`${config.API_BASE_URL}/api/signup`, {
+                const res = await fetch('/api/signup', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -175,7 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
             clearMessage();
 
             try {
-                const res = await fetch(`${config.API_BASE_URL}/api/forgot-password`, {
+                const res = await fetch('/api/forgot-password', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email })
@@ -196,6 +196,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 resetBtn.disabled = false;
                 resetBtn.textContent = 'Send Reset Link';
             }
+        });
+    }
+
+    // Toggle Password Visibility
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('login-password');
+
+    if (togglePassword && passwordInput) {
+        togglePassword.addEventListener('click', function () {
+            // Toggle the type attribute
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+
+            // Toggle the eye / eye slash icon
+            this.classList.toggle('bi-eye');
+            this.classList.toggle('bi-eye-slash');
         });
     }
 });
