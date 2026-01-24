@@ -13,9 +13,10 @@
 
   <!-- Styles -->
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" />
 
+  <!-- Disable browser built-in password UI -->
   <style>
-    /* Disable browser built-in reveal icons */
     input[type="password"]::-ms-reveal,
     input[type="password"]::-ms-clear {
       display: none;
@@ -67,15 +68,33 @@
             />
           </div>
 
-          <!-- PASSWORD (NO EYE ICON) -->
+          <!-- ✅ PASSWORD WITH WORKING EYE -->
           <div class="input-group">
             <label for="login-password">Password</label>
-            <input
-              type="password"
-              id="login-password"
-              placeholder="••••••••"
-              required
-            />
+
+            <div style="position: relative;">
+              <input
+                type="password"
+                id="login-password"
+                placeholder="••••••••"
+                required
+                style="width: 100%; padding-right: 42px;"
+              />
+
+              <i
+                id="togglePassword"
+                class="bi bi-eye-slash"
+                style="
+                  position: absolute;
+                  right: 12px;
+                  top: 50%;
+                  transform: translateY(-50%);
+                  cursor: pointer;
+                  color: #94a3b8;
+                  font-size: 1.2rem;
+                "
+              ></i>
+            </div>
           </div>
 
           <button type="submit" class="btn-primary" id="submit-btn">
@@ -108,7 +127,7 @@
         </form>
       </div>
 
-      <!-- FORGOT PASSWORD -->
+      <!-- Forgot Password -->
       <div class="form-container" id="forgot-password-form" style="display: none;">
         <div class="header">
           <h1>Reset Password</h1>
@@ -145,8 +164,21 @@
     </div>
   </div>
 
-  <!-- JS -->
+  <!-- ✅ CLEAN PASSWORD TOGGLE LOGIC -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const toggle = document.getElementById("togglePassword");
+      const password = document.getElementById("login-password");
+
+      toggle.addEventListener("click", () => {
+        const isHidden = password.type === "password";
+        password.type = isHidden ? "text" : "password";
+        toggle.className = isHidden ? "bi bi-eye" : "bi bi-eye-slash";
+      });
+    });
+  </script>
+
+  <!-- Your main script -->
   <script src="./script.js" defer></script>
 </body>
 </html>
-
