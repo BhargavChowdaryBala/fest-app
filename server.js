@@ -18,96 +18,62 @@ const Item = require('./models/Item');
 
 const app = express();
 
-/* ===================== MIDDLEWARE ===================== */
+/* ================= MIDDLEWARE ================= */
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+/* 🔥 GLOBAL ERROR LOGGER */
 app.use((err, req, res, next) => {
-    if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
-        return res.status(400).json({ message: 'Invalid JSON payload' });
-    }
-    next();
+    console.error("❌ EXPRESS ERROR:", err);
+    res.status(500).json({ message: 'Internal server error' });
 });
 
-/* ===================== STATIC FILES ===================== */
+/* ================= STATIC FILES ================= */
 const uploadsPath = path.join(__dirname, 'public/uploads');
 if (!fs.existsSync(uploadsPath)) {
     fs.mkdirSync(uploadsPath, { recursive: true });
 }
-
 app.use(express.static('public'));
 app.use('/uploads', express.static(uploadsPath));
 
-/* ===================== DATABASE ===================== */
+/* ================= DATABASE ================= */
 mongoose.connect(process.env.MONGO_URI, { dbName: 'fest_users' })
-    .then(() => console.log('✅ MongoDB Connected'))
-    .catch(err => console.error('❌ MongoDB Error:', err));
+    .then(() => console.log('✅ MongoDB connected'))
+    .catch(err => console.error('❌ MongoDB error:', err));
 
-/* ===================== EMAIL (FIXED) ===================== */
+/* ================= EMAIL (DEBUG ENABLED) ================= */
 const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
+    host: 'smtp.gmail.com',
     port: 587,
     secure: false,
     auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS, // Gmail App Password
-    },
-    tls: { rejectUnauthorized: false }
+        pass: process.env.EMAIL_PASS
+    }
 });
 
 transporter.verify((err) => {
-    if (err) console.error("❌ Email Error:", err);
-    else console.log("✅ Email transporter ready");
+    if (err) {
+        console.error('❌ EMAIL VERIFY FAILED:', err);
+    } else {
+        console.log('✅ Email transporter ready');
+    }
 });
 
-/* ===================== RAZORPAY ===================== */
+/* ================= RAZORPAY ================= */
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
     key_secret: process.env.RAZORPAY_KEY_SECRET
 });
 
-/* ===================== CONFIG API ===================== */
-app.get('/api/config', (req, res) => {
-    res.json({
-        merchantName: process.env.MERCHANT_NAME,
-        razorpayKeyId: process.env.RAZORPAY_KEY_ID
-    });
-});
+const ADMIN_PIN = process.env.ADMIN_DASHBOARD_PASSWORD || "1234";
 
-/* ===================== AUTH ===================== */
-// Signup
-app.post('/api/signup', async (req, res) => {
-    try {
-        const { name, whatsappNumber, email, password } = req.body;
-
-        if (!/^\d{10}$/.test(whatsappNumber)) {
-            return res.status(400).json({ message: 'WhatsApp number must be 10 digits' });
-        }
-
-        const exists = await UserDetails.findOne({ $or: [{ email }, { whatsappNumber }] });
-        if (exists) return res.status(400).json({ message: 'User already exists' });
-
-        const hashed = await bcrypt.hash(password, 10);
-
-        await new UserDetails({
-            name,
-            whatsappNumber,
-            email,
-            password: hashed
-        }).save();
-
-        res.status(201).json({ message: 'User registered successfully' });
-    } catch (e) {
-        res.status(500).json({ message: 'Signup error', error: e.message });
-    }
-});
-
-// Login
+/* ================= AUTH ================= */
 app.post('/api/login', async (req, res) => {
+    console.log("➡️ Login request:", req.body);
     try {
         const { identifier, password } = req.body;
-
         const user = await UserDetails.findOne({
             $or: [{ email: identifier }, { whatsappNumber: identifier }]
         });
@@ -117,20 +83,25 @@ app.post('/api/login', async (req, res) => {
         }
 
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-
         res.json({ token, user });
-    } catch (e) {
+    } catch (err) {
+        console.error("❌ LOGIN ERROR:", err);
         res.status(500).json({ message: 'Login error' });
     }
 });
 
-/* ===================== FORGOT PASSWORD (FIXED) ===================== */
+/* ================= FORGOT PASSWORD (FULL DEBUG) ================= */
 app.post('/api/forgot-password', async (req, res) => {
+    console.log("➡️ Forgot password request:", req.body);
+
     try {
         const { email } = req.body;
         const user = await UserDetails.findOne({ email });
 
-        if (!user) return res.status(404).json({ message: 'User not found' });
+        if (!user) {
+            console.log("❌ Email not found:", email);
+            return res.status(404).json({ message: 'Email not registered' });
+        }
 
         const token = crypto.randomBytes(32).toString('hex');
         user.resetPasswordToken = token;
@@ -138,93 +109,80 @@ app.post('/api/forgot-password', async (req, res) => {
         await user.save();
 
         const resetUrl = `${process.env.FRONTEND_URL}/reset-password.html?token=${token}`;
+        console.log("🔗 Reset URL:", resetUrl);
 
         await transporter.sendMail({
             from: `"Fest Support" <${process.env.EMAIL_USER}>`,
             to: email,
-            subject: 'Password Reset',
+            subject: 'Reset Your Password',
             html: `
                 <h3>Password Reset</h3>
-                <p>Click below to reset your password</p>
-                <a href="${resetUrl}">Reset Password</a>
-                <p>Valid for 1 hour</p>
+                <p>Click below:</p>
+                <a href="${resetUrl}">${resetUrl}</a>
+                <p>Expires in 1 hour</p>
             `
         });
 
-        res.json({ message: 'Password reset email sent' });
-    } catch (e) {
-        console.error(e);
+        console.log("✅ Reset email sent to:", email);
+        res.json({ message: 'Reset link sent' });
+
+    } catch (err) {
+        console.error("❌ FORGOT PASSWORD ERROR:", err);
         res.status(500).json({ message: 'Email sending failed' });
     }
 });
 
-// Reset Password
+/* ================= RESET PASSWORD ================= */
 app.post('/api/reset-password', async (req, res) => {
+    console.log("➡️ Reset password request");
+
     try {
         const { token, newPassword } = req.body;
-
         const user = await UserDetails.findOne({
             resetPasswordToken: token,
             resetPasswordExpires: { $gt: Date.now() }
         });
 
-        if (!user) return res.status(400).json({ message: 'Invalid or expired token' });
+        if (!user) {
+            console.log("❌ Invalid/expired token");
+            return res.status(400).json({ message: 'Invalid token' });
+        }
 
         user.password = await bcrypt.hash(newPassword, 10);
         user.resetPasswordToken = undefined;
         user.resetPasswordExpires = undefined;
         await user.save();
 
-        res.json({ message: 'Password reset successful' });
-    } catch (e) {
+        console.log("✅ Password reset success");
+        res.json({ message: 'Password updated' });
+
+    } catch (err) {
+        console.error("❌ RESET ERROR:", err);
         res.status(500).json({ message: 'Reset failed' });
     }
 });
 
-/* ===================== ITEMS ===================== */
-const storage = multer.diskStorage({
-    destination: 'public/uploads/',
-    filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
-});
-const upload = multer({ storage });
+/* ================= ADMIN ORDERS (RESTORED) ================= */
+app.get('/api/orders', async (req, res) => {
+    console.log("➡️ Admin orders request");
 
-app.get('/api/items', async (req, res) => {
-    res.json(await Item.find());
-});
+    try {
+        const pin = req.headers['x-admin-pin'];
+        if (pin !== ADMIN_PIN) {
+            console.log("❌ Invalid admin PIN:", pin);
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
 
-app.post('/api/items', upload.single('image'), async (req, res) => {
-    const image = req.file ? `/uploads/${req.file.filename}` : '';
-    const item = await new Item({ ...req.body, image }).save();
-    res.status(201).json(item);
-});
+        const orders = await Order.find().sort({ createdAt: -1 });
+        res.json(orders);
 
-/* ===================== ORDERS ===================== */
-app.post('/api/create-razorpay-order', async (req, res) => {
-    const order = await razorpay.orders.create({
-        amount: req.body.amount * 100,
-        currency: 'INR',
-        receipt: 'fest_' + Date.now()
-    });
-    res.json(order);
-});
-
-app.post('/api/verify-payment', async (req, res) => {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
-
-    const sign = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
-        .update(`${razorpay_order_id}|${razorpay_payment_id}`)
-        .digest('hex');
-
-    if (sign !== razorpay_signature) {
-        return res.status(400).json({ message: 'Payment verification failed' });
+    } catch (err) {
+        console.error("❌ ADMIN ORDERS ERROR:", err);
+        res.status(500).json({ message: 'Failed to load orders' });
     }
-
-    const uniqueId = 'FEST-' + Math.floor(1000 + Math.random() * 9000);
-    const order = await new Order({ ...req.body, uniqueId }).save();
-
-    res.json({ message: 'Payment successful', uniqueId });
 });
 
-/* ===================== SERVER ===================== */
+/* ================= SERVER ================= */
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server running on ${PORT}`));
+
