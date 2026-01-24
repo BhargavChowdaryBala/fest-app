@@ -1,134 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Welcome Back</title>
 
-  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-
-  <!-- Styles -->
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" />
-
-  <!-- Disable browser built-in password UI -->
-  <style>
-    input[type="password"]::-ms-reveal,
-    input[type="password"]::-ms-clear {
-      display: none;
-    }
-
-    input[type="password"]::-webkit-credentials-auto-fill-button,
-    input[type="password"]::-webkit-textfield-decoration-container {
-      display: none;
-      visibility: hidden;
-    }
-  </style>
 </head>
 
 <body>
   <div class="container">
     <div class="glass-card">
 
-      <!-- LOGIN FORM -->
+      <!-- LOGIN -->
       <div class="form-container" id="login-form">
         <div class="header">
-          <h1 id="form-title">Welcome Back</h1>
-          <p id="form-subtitle">Enter your details to access your account</p>
+          <h1>Welcome Back</h1>
+          <p>Enter your details to access your account</p>
         </div>
 
         <form id="authForm">
-          <!-- Signup Fields -->
-          <div id="signup-fields" style="display: none;">
-            <div class="input-group">
-              <label for="signup-name">Full Name</label>
-              <input type="text" id="signup-name" placeholder="John Doe" />
-            </div>
-
-            <div class="input-group">
-              <label for="signup-email">Email Address</label>
-              <input type="email" id="signup-email" placeholder="john@example.com" />
-            </div>
+          <div class="input-group">
+            <label>WhatsApp Number or Email</label>
+            <input type="text" id="login-identifier" required />
           </div>
 
-          <!-- Identifier -->
           <div class="input-group">
-            <label for="login-identifier" id="identifier-label">
-              WhatsApp Number or Email
-            </label>
-            <input
-              type="text"
-              id="login-identifier"
-              placeholder="Enter mobile or email"
-              required
-            />
-          </div>
-
-          <!-- ✅ PASSWORD WITH WORKING EYE -->
-          <div class="input-group">
-            <label for="login-password">Password</label>
-
+            <label>Password</label>
             <div style="position: relative;">
-              <input
-                type="password"
-                id="login-password"
-                placeholder="••••••••"
-                required
-                style="width: 100%; padding-right: 42px;"
-              />
-
-              <i
-                id="togglePassword"
-                class="bi bi-eye-slash"
-                style="
-                  position: absolute;
-                  right: 12px;
-                  top: 50%;
-                  transform: translateY(-50%);
-                  cursor: pointer;
-                  color: #94a3b8;
-                  font-size: 1.2rem;
-                "
-              ></i>
+              <input type="password" id="login-password" required />
+              <i id="togglePassword" class="bi bi-eye-slash"
+                style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer"></i>
             </div>
           </div>
 
-          <button type="submit" class="btn-primary" id="submit-btn">
-            Sign In
-          </button>
+          <button type="submit" class="btn-primary">Sign In</button>
 
-          <p
-            id="toggle-auth"
-            style="text-align: center; margin-top: 1rem; cursor: pointer; opacity: 0.8;"
-          >
-            New user?
-            <span style="color: #4f46e5; font-weight: bold;">Sign Up</span>
-          </p>
-
-          <div
-            class="admin-link-container"
-            style="display: flex; justify-content: space-between; margin-top: 10px;"
-          >
-            <a
-              href="#"
-              id="forgot-password-link"
-              style="color: #4f46e5; text-decoration: none; font-size: 0.9rem;"
-            >
-              Forgot Password?
-            </a>
-            <a href="/admin.html" class="admin-link">
-              Admin Dashboard
-            </a>
+          <div style="display:flex;justify-content:space-between;margin-top:10px">
+            <a href="#" id="forgot-password-link">Forgot Password?</a>
+            <a href="/admin.html">Admin Dashboard</a>
           </div>
         </form>
       </div>
 
-      <!-- Forgot Password -->
-      <div class="form-container" id="forgot-password-form" style="display: none;">
+      <!-- FORGOT PASSWORD -->
+      <div class="form-container" id="forgot-password-form" style="display:none">
         <div class="header">
           <h1>Reset Password</h1>
           <p>Enter your email to receive a reset link</p>
@@ -136,26 +56,16 @@
 
         <form id="resetRequestForm">
           <div class="input-group">
-            <label for="reset-email">Email Address</label>
-            <input
-              type="email"
-              id="reset-email"
-              placeholder="Enter your registered email"
-              required
-            />
+            <label>Email</label>
+            <input type="email" id="reset-email" required />
           </div>
 
           <button type="submit" class="btn-primary" id="reset-btn">
             Send Reset Link
           </button>
 
-          <p
-            id="back-to-login"
-            style="text-align: center; margin-top: 1rem; cursor: pointer; opacity: 0.8;"
-          >
-            <span style="color: #4f46e5; font-weight: bold;">
-              Back to Login
-            </span>
+          <p id="back-to-login" style="margin-top:1rem;cursor:pointer;color:#4f46e5">
+            Back to Login
           </p>
         </form>
       </div>
@@ -164,21 +74,31 @@
     </div>
   </div>
 
-  <!-- ✅ CLEAN PASSWORD TOGGLE LOGIC -->
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const toggle = document.getElementById("togglePassword");
-      const password = document.getElementById("login-password");
+    // UI switching
+    const loginForm = document.getElementById("login-form");
+    const forgotForm = document.getElementById("forgot-password-form");
 
-      toggle.addEventListener("click", () => {
-        const isHidden = password.type === "password";
-        password.type = isHidden ? "text" : "password";
-        toggle.className = isHidden ? "bi bi-eye" : "bi bi-eye-slash";
-      });
-    });
+    document.getElementById("forgot-password-link").onclick = () => {
+      loginForm.style.display = "none";
+      forgotForm.style.display = "block";
+    };
+
+    document.getElementById("back-to-login").onclick = () => {
+      forgotForm.style.display = "none";
+      loginForm.style.display = "block";
+    };
+
+    // Password toggle
+    const toggle = document.getElementById("togglePassword");
+    const password = document.getElementById("login-password");
+    toggle.onclick = () => {
+      password.type = password.type === "password" ? "text" : "password";
+      toggle.className = password.type === "password" ? "bi bi-eye-slash" : "bi bi-eye";
+    };
   </script>
 
-  <!-- Your main script -->
   <script src="./script.js" defer></script>
 </body>
 </html>
+
