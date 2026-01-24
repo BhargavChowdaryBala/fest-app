@@ -2,14 +2,6 @@
 <html lang="en">
 
 <head>
-  <style>
-  /* 🔥 FORCE password visibility when type=text */
-  #login-password[type="text"] {
-    -webkit-text-security: none !important;
-    text-security: none !important;
-  }
-</style>
-
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Welcome Back</title>
@@ -17,14 +9,27 @@
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
 
-  <!-- Styles -->
+  <!-- Main Styles -->
   <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" />
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
+  />
 
-  <!-- 🔥 FIX: Disable browser password reveal icons -->
+  <!-- 🔥 FINAL PASSWORD VISIBILITY FIX (MUST BE AFTER style.css) -->
   <style>
+    /* Disable any CSS-based password masking */
+    #login-password {
+      -webkit-text-security: none !important;
+      text-security: none !important;
+    }
+
+    /* Remove browser default reveal icons */
     input[type="password"]::-ms-reveal,
     input[type="password"]::-ms-clear {
       display: none !important;
@@ -54,6 +59,7 @@
               <label for="signup-name">Full Name</label>
               <input type="text" id="signup-name" placeholder="John Doe" />
             </div>
+
             <div class="input-group">
               <label for="signup-email">Email Address</label>
               <input type="email" id="signup-email" placeholder="john@example.com" />
@@ -62,11 +68,18 @@
 
           <!-- Identifier -->
           <div class="input-group">
-            <label for="login-identifier" id="identifier-label">WhatsApp Number or Email</label>
-            <input type="text" id="login-identifier" placeholder="Enter mobile or email" required />
+            <label for="login-identifier" id="identifier-label">
+              WhatsApp Number or Email
+            </label>
+            <input
+              type="text"
+              id="login-identifier"
+              placeholder="Enter mobile or email"
+              required
+            />
           </div>
 
-          <!-- 🔐 Password with WORKING eye -->
+          <!-- Password -->
           <div class="input-group">
             <label for="login-password">Password</label>
 
@@ -91,23 +104,32 @@
                   color: #ffffff;
                   font-size: 1.2rem;
                   z-index: 10;
-                  pointer-events: auto;
                 "
               ></i>
             </div>
           </div>
 
-          <button type="submit" class="btn-primary" id="submit-btn">Sign In</button>
+          <button type="submit" class="btn-primary" id="submit-btn">
+            Sign In
+          </button>
 
-          <p id="toggle-auth" style="text-align: center; margin-top: 1rem; cursor: pointer; opacity: 0.8;">
-            New user? <span style="color: #4f46e5; font-weight: bold;">Sign Up</span>
+          <p
+            id="toggle-auth"
+            style="text-align: center; margin-top: 1rem; cursor: pointer; opacity: 0.8;"
+          >
+            New user?
+            <span style="color: #4f46e5; font-weight: bold;">Sign Up</span>
           </p>
 
           <div
             class="admin-link-container"
-            style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;"
+            style="display: flex; justify-content: space-between; margin-top: 10px;"
           >
-            <a href="#" id="forgot-password-link" style="color: #4f46e5; text-decoration: none; font-size: 0.9rem;">
+            <a
+              href="#"
+              id="forgot-password-link"
+              style="color: #4f46e5; text-decoration: none; font-size: 0.9rem;"
+            >
               Forgot Password?
             </a>
             <a href="/admin.html" class="admin-link">Admin Dashboard</a>
@@ -116,7 +138,11 @@
       </div>
 
       <!-- Forgot Password -->
-      <div class="form-container" id="forgot-password-form" style="display: none;">
+      <div
+        class="form-container"
+        id="forgot-password-form"
+        style="display: none;"
+      >
         <div class="header">
           <h1>Reset Password</h1>
           <p>Enter your email to receive a reset link</p>
@@ -125,12 +151,25 @@
         <form id="resetRequestForm">
           <div class="input-group">
             <label for="reset-email">Email Address</label>
-            <input type="email" id="reset-email" placeholder="Enter your registered email" required />
+            <input
+              type="email"
+              id="reset-email"
+              placeholder="Enter your registered email"
+              required
+            />
           </div>
-          <button type="submit" class="btn-primary" id="reset-btn">Send Reset Link</button>
 
-          <p id="back-to-login" style="text-align: center; margin-top: 1rem; cursor: pointer; opacity: 0.8;">
-            <span style="color: #4f46e5; font-weight: bold;">Back to Login</span>
+          <button type="submit" class="btn-primary" id="reset-btn">
+            Send Reset Link
+          </button>
+
+          <p
+            id="back-to-login"
+            style="text-align: center; margin-top: 1rem; cursor: pointer; opacity: 0.8;"
+          >
+            <span style="color: #4f46e5; font-weight: bold;">
+              Back to Login
+            </span>
           </p>
         </form>
       </div>
@@ -139,7 +178,7 @@
     </div>
   </div>
 
-  <!-- 🔥 IMPORTANT: defer ensures DOM is ready -->
+  <!-- Script -->
   <script src="./script.js" defer></script>
 </body>
 
