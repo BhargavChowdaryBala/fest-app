@@ -1,4 +1,6 @@
 const BACKEND_URL = "https://fest-app-backend.onrender.com";
+const getApiUrl = (endpoint) => `${BACKEND_URL}${endpoint}`;
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -516,27 +518,40 @@ const BACKEND_URL = "https://fest-app-backend.onrender.com";
         }
 
         async function fetchOrders() {
-            try {
-                const res = await fetch(getApiUrl('/api/orders'), {
-                    headers: { 'x-admin-pin': adminPin }
-                });
-
-                if (res.status === 401) {
-                    localStorage.removeItem('admin_pin');
-                    alert("Invalid PIN. Please try again.");
-                    adminPin = null;
-                    requestPin();
-                    return;
-                }
-
-                allOrders = await res.json();
-                renderOrders(allOrders);
-                updateStats(allOrders);
-
-            } catch (error) {
-                console.error('Error fetching orders:', error);
+    try {
+        const res = await fetch(getApiUrl('/api/orders'), {
+            headers: {
+                'x-admin-pin': adminPin
             }
+        });
+
+        // Handle invalid admin PIN
+        if (res.status === 401) {
+            localStorage.removeItem('admin_pin');
+            alert("Invalid PIN. Please try again.");
+            adminPin = null;
+            requestPin();
+            return;
         }
+
+        // Safety check: ensure JSON response
+        const contentType = res.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await res.text();
+            throw new Error(`Invalid response from server: ${text}`);
+        }
+
+        // Parse data
+        allOrders = await res.json();
+        renderOrders(allOrders);
+        updateStats(allOrders);
+
+    } catch (error) {
+        console.error('Error fetching orders:', error);
+        alert('Failed to load orders. Please refresh the page.');
+    }
+}
+
 
         function renderOrders(ordersToRender) {
             const tbody = document.getElementById('orders-body');
