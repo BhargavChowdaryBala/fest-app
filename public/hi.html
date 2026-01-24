@@ -636,7 +636,7 @@
                 itemsGrid.innerHTML = '';
                 items.forEach(item => {
                     // Use placeholder if no image
-                    const imgUrl = item.image || `https://source.unsplash.com/500x300/?${encodeURIComponent(item.name)},food`;
+                    const imgUrl = item.image   ? `${BACKEND_URL}${item.image}`   : `https://source.unsplash.com/500x300/?${encodeURIComponent(item.name)},food`;
 
                     const card = document.createElement('div');
                     card.className = 'item-card';
