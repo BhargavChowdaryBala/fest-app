@@ -23,17 +23,9 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-/* 🔥 GLOBAL ERROR LOGGER */
-app.use((err, req, res, next) => {
-    console.error("❌ EXPRESS ERROR:", err);
-    res.status(500).json({ message: 'Internal server error' });
-});
-
-/* ================= STATIC FILES ================= */
+/* ================= STATIC ================= */
 const uploadsPath = path.join(__dirname, 'public/uploads');
-if (!fs.existsSync(uploadsPath)) {
-    fs.mkdirSync(uploadsPath, { recursive: true });
-}
+if (!fs.existsSync(uploadsPath)) fs.mkdirSync(uploadsPath, { recursive: true });
 app.use(express.static('public'));
 app.use('/uploads', express.static(uploadsPath));
 
@@ -42,7 +34,7 @@ mongoose.connect(process.env.MONGO_URI, { dbName: 'fest_users' })
     .then(() => console.log('✅ MongoDB connected'))
     .catch(err => console.error('❌ MongoDB error:', err));
 
-/* ================= EMAIL (DEBUG ENABLED) ================= */
+/* ================= EMAIL ================= */
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
     port: 587,
@@ -53,12 +45,9 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-transporter.verify((err) => {
-    if (err) {
-        console.error('❌ EMAIL VERIFY FAILED:', err);
-    } else {
-        console.log('✅ Email transporter ready');
-    }
+transporter.verify(err => {
+    if (err) console.error('❌ Email error:', err);
+    else console.log('✅ Email ready');
 });
 
 /* ================= RAZORPAY ================= */
@@ -67,11 +56,38 @@ const razorpay = new Razorpay({
     key_secret: process.env.RAZORPAY_KEY_SECRET
 });
 
-const ADMIN_PIN = process.env.ADMIN_DASHBOARD_PASSWORD || "1234";
+const ADMIN_PIN = process.env.ADMIN_DASHBOARD_PASSWORD || '1234';
+
+/* ================= CONFIG ================= */
+app.get('/api/config', (req, res) => {
+    console.log('➡️ /api/config');
+    res.json({
+        merchantName: process.env.MERCHANT_NAME,
+        razorpayKeyId: process.env.RAZORPAY_KEY_ID
+    });
+});
+
+/* ================= ITEMS ================= */
+const storage = multer.diskStorage({
+    destination: 'public/uploads/',
+    filename: (req, file, cb) =>
+        cb(null, Date.now() + path.extname(file.originalname))
+});
+const upload = multer({ storage });
+
+app.get('/api/items', async (req, res) => {
+    console.log('➡️ /api/items');
+    try {
+        const items = await Item.find().sort({ createdAt: 1 });
+        res.json(items);
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ message: 'Failed to load items' });
+    }
+});
 
 /* ================= AUTH ================= */
 app.post('/api/login', async (req, res) => {
-    console.log("➡️ Login request:", req.body);
     try {
         const { identifier, password } = req.body;
         const user = await UserDetails.findOne({
@@ -84,24 +100,18 @@ app.post('/api/login', async (req, res) => {
 
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
         res.json({ token, user });
-    } catch (err) {
-        console.error("❌ LOGIN ERROR:", err);
-        res.status(500).json({ message: 'Login error' });
+    } catch (e) {
+        res.status(500).json({ message: 'Login failed' });
     }
 });
 
-/* ================= FORGOT PASSWORD (FULL DEBUG) ================= */
+/* ================= FORGOT PASSWORD ================= */
 app.post('/api/forgot-password', async (req, res) => {
-    console.log("➡️ Forgot password request:", req.body);
+    console.log('➡️ /api/forgot-password', req.body);
 
     try {
-        const { email } = req.body;
-        const user = await UserDetails.findOne({ email });
-
-        if (!user) {
-            console.log("❌ Email not found:", email);
-            return res.status(404).json({ message: 'Email not registered' });
-        }
+        const user = await UserDetails.findOne({ email: req.body.email });
+        if (!user) return res.status(404).json({ message: 'Email not registered' });
 
         const token = crypto.randomBytes(32).toString('hex');
         user.resetPasswordToken = token;
@@ -109,75 +119,31 @@ app.post('/api/forgot-password', async (req, res) => {
         await user.save();
 
         const resetUrl = `${process.env.FRONTEND_URL}/reset-password.html?token=${token}`;
-        console.log("🔗 Reset URL:", resetUrl);
 
         await transporter.sendMail({
-            from: `"Fest Support" <${process.env.EMAIL_USER}>`,
-            to: email,
-            subject: 'Reset Your Password',
-            html: `
-                <h3>Password Reset</h3>
-                <p>Click below:</p>
-                <a href="${resetUrl}">${resetUrl}</a>
-                <p>Expires in 1 hour</p>
-            `
+            from: process.env.EMAIL_USER,
+            to: user.email,
+            subject: 'Password Reset',
+            html: `<a href="${resetUrl}">Reset Password</a>`
         });
 
-        console.log("✅ Reset email sent to:", email);
         res.json({ message: 'Reset link sent' });
 
-    } catch (err) {
-        console.error("❌ FORGOT PASSWORD ERROR:", err);
-        res.status(500).json({ message: 'Email sending failed' });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ message: 'Email failed' });
     }
 });
 
-/* ================= RESET PASSWORD ================= */
-app.post('/api/reset-password', async (req, res) => {
-    console.log("➡️ Reset password request");
-
-    try {
-        const { token, newPassword } = req.body;
-        const user = await UserDetails.findOne({
-            resetPasswordToken: token,
-            resetPasswordExpires: { $gt: Date.now() }
-        });
-
-        if (!user) {
-            console.log("❌ Invalid/expired token");
-            return res.status(400).json({ message: 'Invalid token' });
-        }
-
-        user.password = await bcrypt.hash(newPassword, 10);
-        user.resetPasswordToken = undefined;
-        user.resetPasswordExpires = undefined;
-        await user.save();
-
-        console.log("✅ Password reset success");
-        res.json({ message: 'Password updated' });
-
-    } catch (err) {
-        console.error("❌ RESET ERROR:", err);
-        res.status(500).json({ message: 'Reset failed' });
-    }
-});
-
-/* ================= ADMIN ORDERS (RESTORED) ================= */
+/* ================= ADMIN ORDERS ================= */
 app.get('/api/orders', async (req, res) => {
-    console.log("➡️ Admin orders request");
-
     try {
-        const pin = req.headers['x-admin-pin'];
-        if (pin !== ADMIN_PIN) {
-            console.log("❌ Invalid admin PIN:", pin);
+        if (req.headers['x-admin-pin'] !== ADMIN_PIN) {
             return res.status(401).json({ message: 'Unauthorized' });
         }
-
         const orders = await Order.find().sort({ createdAt: -1 });
         res.json(orders);
-
-    } catch (err) {
-        console.error("❌ ADMIN ORDERS ERROR:", err);
+    } catch (e) {
         res.status(500).json({ message: 'Failed to load orders' });
     }
 });
@@ -185,4 +151,3 @@ app.get('/api/orders', async (req, res) => {
 /* ================= SERVER ================= */
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Server running on ${PORT}`));
-
