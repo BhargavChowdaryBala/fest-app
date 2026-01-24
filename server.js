@@ -1,7 +1,5 @@
 require('dotenv').config();
 const express = require('express');
-const path = require('path');
-const fs = require('fs');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
@@ -10,6 +8,7 @@ const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 const Razorpay = require('razorpay');
 const multer = require('multer');
+const path = require('path');
 
 // Models
 const User = require('./models/User');
@@ -26,30 +25,14 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use((err, req, res, next) => {
-    if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
-        return res.status(400).json({ message: 'Invalid JSON payload' });
-    }
-    next();
-});
-
 /* =========================
-   EMAIL CONFIG (FIXED)
+   EMAIL (ORIGINAL)
 ========================= */
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
-    }
-});
-
-// 🔥 REQUIRED FOR RENDER DEBUG
-transporter.verify((error) => {
-    if (error) {
-        console.error("❌ EMAIL CONFIG ERROR:", error);
-    } else {
-        console.log("✅ EMAIL SERVER READY");
     }
 });
 
@@ -62,16 +45,9 @@ const razorpay = new Razorpay({
 });
 
 /* =========================
-   STATIC FILES (UPLOADS FIX)
+   STATIC FILES
 ========================= */
-const uploadsPath = path.join(__dirname, 'public/uploads');
-
-if (!fs.existsSync(uploadsPath)) {
-    fs.mkdirSync(uploadsPath, { recursive: true });
-}
-
 app.use(express.static('public'));
-app.use('/uploads', express.static(uploadsPath));
 
 /* =========================
    CONFIG API
@@ -87,8 +63,8 @@ app.get('/api/config', (req, res) => {
    DATABASE
 ========================= */
 mongoose.connect(process.env.MONGO_URI, { dbName: 'fest_users' })
-    .then(() => console.log('✅ MongoDB Connected'))
-    .catch(err => console.error('❌ MongoDB Error:', err));
+    .then(() => console.log('MongoDB Connected'))
+    .catch(err => console.error('MongoDB Error:', err));
 
 const ADMIN_PIN = process.env.ADMIN_DASHBOARD_PASSWORD || "1234";
 
@@ -98,10 +74,6 @@ const ADMIN_PIN = process.env.ADMIN_DASHBOARD_PASSWORD || "1234";
 app.post('/api/signup', async (req, res) => {
     try {
         const { name, whatsappNumber, email, password } = req.body;
-
-        if (!/^\d{10}$/.test(whatsappNumber)) {
-            return res.status(400).json({ message: 'WhatsApp must be 10 digits' });
-        }
 
         const exists = await UserDetails.findOne({
             $or: [{ whatsappNumber }, { email }]
@@ -140,7 +112,7 @@ app.post('/api/login', async (req, res) => {
 });
 
 /* =========================
-   FORGOT PASSWORD (FIXED)
+   FORGOT PASSWORD (ROLLED BACK)
 ========================= */
 app.post('/api/forgot-password', async (req, res) => {
     try {
@@ -158,50 +130,21 @@ app.post('/api/forgot-password', async (req, res) => {
 
         const resetUrl = `${req.protocol}://${req.get('host')}/reset-password.html?token=${token}`;
 
-        const mailOptions = {
+        transporter.sendMail({
             from: process.env.EMAIL_USER,
             to: user.email,
             subject: 'Password Reset',
-            text: `Reset your password:\n\n${resetUrl}`
-        };
-
-        // 🔥 ASYNC SEND (RENDER SAFE)
-        await transporter.sendMail(mailOptions);
-        console.log("✅ Reset email sent to", user.email);
-
-        res.json({ message: 'Password reset email sent' });
-    } catch (err) {
-        console.error("❌ Forgot password error:", err);
-        res.status(500).json({ message: 'Email failed' });
-    }
-});
-
-app.post('/api/reset-password', async (req, res) => {
-    try {
-        const { token, newPassword } = req.body;
-
-        const user = await UserDetails.findOne({
-            resetPasswordToken: token,
-            resetPasswordExpires: { $gt: Date.now() }
+            text: resetUrl
         });
 
-        if (!user) {
-            return res.status(400).json({ message: 'Token invalid or expired' });
-        }
-
-        user.password = await bcrypt.hash(newPassword, 10);
-        user.resetPasswordToken = undefined;
-        user.resetPasswordExpires = undefined;
-        await user.save();
-
-        res.json({ message: 'Password updated' });
+        res.json({ message: 'Reset email sent' });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 });
 
 /* =========================
-   ITEMS + IMAGES
+   ITEMS (ORIGINAL)
 ========================= */
 const storage = multer.diskStorage({
     destination: 'public/uploads',
@@ -229,4 +172,4 @@ app.post('/api/items', upload.single('image'), async (req, res) => {
    SERVER
 ========================= */
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Server running on ${PORT}`));
+app.listen(PORT, () => console.log(`Server running on ${PORT}`));
