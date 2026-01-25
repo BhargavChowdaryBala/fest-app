@@ -88,6 +88,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const identifier = document.getElementById('login-identifier').value;
             const password = document.getElementById('login-password').value;
+            const loginBtn = authLoginForm.querySelector('button');
+
+            // 1. Show Loading State
+            loginBtn.disabled = true;
+            const originalText = loginBtn.textContent; // "Enter Void"
+            loginBtn.innerHTML = '<div class="loading-dots"><span></span><span></span><span></span></div>';
 
             try {
                 const res = await fetch(`${BACKEND_URL}/api/login`, {
@@ -99,16 +105,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await res.json();
 
                 if (res.ok) {
-                    showMessage(loginMessage, 'Welcome back!', 'success');
+                    // 2. Show Success State
+                    loginBtn.textContent = 'Welcome Back!';
+                    loginBtn.style.background = 'linear-gradient(135deg, #00ff7f, #00cc66)'; // Greenish hint
+                    loginBtn.style.color = '#fff';
+
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('user', JSON.stringify(data.user));
-                    setTimeout(() => window.location.href = '/hi.html', 1000);
+
+                    // Redirect
+                    setTimeout(() => window.location.href = '/hi.html', 1500);
                 } else {
-                    showMessage(loginMessage, data.message || 'Login failed', 'error');
+                    // 3. Show Error State
+                    throw new Error(data.message || 'Invalid Credentials');
                 }
             } catch (err) {
                 console.error(err);
-                showMessage(loginMessage, 'Server error', 'error');
+
+                // Show Error on Button
+                loginBtn.textContent = err.message || 'Invalid Credentials';
+                loginBtn.style.background = 'linear-gradient(135deg, #ff4444, #cc0000)'; // Reddish hint
+                loginBtn.style.color = '#fff';
+
+                // Reset after 3 seconds
+                setTimeout(() => {
+                    loginBtn.textContent = 'Enter Void';
+                    loginBtn.disabled = false;
+                    // Reset styles (empty string reverts to CSS)
+                    loginBtn.style.background = '';
+                    loginBtn.style.color = '';
+                }, 3000);
             }
         });
     }

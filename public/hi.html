@@ -307,6 +307,41 @@
                 padding: 12px;
                 font-size: 0.9rem;
             }
+
+            /* FORCE 2 COLUMNS ON MOBILE */
+            .menu-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 10px !important;
+                padding: 10px !important;
+                width: 100% !important;
+            }
+
+            /* Adjust card for smaller space */
+            .item-card {
+                padding: 0;
+            }
+
+            .card-image {
+                height: 120px !important;
+                /* Smaller image height */
+            }
+
+            .card-content {
+                padding: 10px !important;
+            }
+
+            .item-title {
+                font-size: 1rem !important;
+            }
+
+            .item-price {
+                font-size: 1rem !important;
+            }
+
+            .btn-add-cart {
+                padding: 8px 12px !important;
+                font-size: 0.9rem !important;
+            }
         }
     </style>
 </head>
