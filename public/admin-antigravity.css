@@ -1,0 +1,328 @@
+/* Admin Antigravity Theme - Login Port */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+:root {
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --neon-cyan: #0ef;
+    --neon-purple: #c800ff;
+    --text-main: #ffffff;
+    --shadow-cyan: rgba(0, 255, 255, 0.2);
+    --shadow-purple: rgba(138, 43, 226, 0.2);
+}
+
+/* Professional Dark Theme */
+body {
+    background: #000000;
+    /* Deep Professional Black */
+    color: var(--text-main);
+    font-family: 'Outfit', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    margin: 0;
+    /* Subtle mesh gradient for professionalism if needed, but solid black requested earlier */
+}
+
+/* Background Shapes REMOVED for professional look */
+.bg-shape {
+    display: none;
+}
+
+.bg-shape-1 {
+    top: -50px;
+    left: -50px;
+    width: 300px;
+    height: 300px;
+    background: linear-gradient(#1845ad, #23a2f6);
+}
+
+.bg-shape-2 {
+    bottom: -50px;
+    right: -50px;
+    width: 300px;
+    height: 300px;
+    background: linear-gradient(#ff00cc, #333399);
+    animation-delay: -5s;
+}
+
+@keyframes drift {
+    0% {
+        transform: translate(0, 0);
+    }
+
+    100% {
+        transform: translate(50px, 50px);
+    }
+}
+
+/* Glass Containers (Professional) */
+.glass-nav,
+.stat-card,
+.glass-table-container,
+.modal-content,
+.nav-links-container {
+    background: rgba(20, 20, 20, 0.6);
+    /* Slightly darker glass */
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    /* Neutral shadow */
+    border-radius: 20px;
+}
+
+/* Navigation */
+.glass-nav {
+    border-radius: 0 0 20px 20px;
+    z-index: 100;
+    margin-bottom: 2rem;
+}
+
+.nav-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.logo {
+    font-weight: 700;
+    font-size: 1.5rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Stats Cards */
+.stat-card {
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0 30px rgba(0, 238, 255, 0.4);
+}
+
+.stat-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 0.5rem 0;
+}
+
+.stat-label {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Table */
+.glass-table-container {
+    padding: 1.5rem;
+}
+
+h2 {
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 0;
+}
+
+th {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--neon-cyan);
+    padding: 1rem;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+}
+
+td {
+    padding: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Buttons */
+.back-btn {
+    border: none !important;
+    border-radius: 50px;
+    background: linear-gradient(135deg, #e0e0e0, #ffffff, #e0e0e0) !important;
+    color: #333 !important;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: 0.3s;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1) !important;
+    padding: 8px 16px;
+    cursor: pointer;
+}
+
+.back-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Special Scan Button styling to match but be distinct */
+.scan-btn-premium {
+    background: rgba(37, 211, 102, 0.1) !important;
+    /* Keep green tint for scan */
+    border: 1px solid #25d366 !important;
+    color: #25d366 !important;
+    box-shadow: 0 0 10px rgba(37, 211, 102, 0.2) !important;
+}
+
+.scan-btn-premium:hover {
+    background: #25d366 !important;
+    color: #000 !important;
+    box-shadow: 0 0 20px rgba(37, 211, 102, 0.6) !important;
+}
+
+/* Inputs */
+input {
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.3) !important;
+    color: white !important;
+    border-radius: 0 !important;
+    padding: 8px 0 !important;
+    transition: 0.3s;
+}
+
+input:focus {
+    border-bottom-color: var(--neon-cyan) !important;
+    box-shadow: 0 10px 10px -10px rgba(0, 238, 255, 0.5) !important;
+}
+
+/* Responsive */
+.hamburger-btn {
+    display: none;
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 1.8rem;
+    cursor: pointer;
+}
+
+.nav-links-container {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    box-shadow: none;
+    /* Reset shadow for desktop */
+    border: none;
+    background: transparent;
+    backdrop-filter: none;
+}
+
+@media (max-width: 768px) {
+    .hamburger-btn {
+        display: block;
+    }
+
+    .nav-links-container {
+        display: none;
+        position: absolute;
+        top: 100%;
+        right: 0;
+        width: 200px;
+        background: rgba(20, 20, 20, 0.95);
+        /* Deep dark professional background */
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        /* Subtle white border */
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        /* Neutral shadow */
+        flex-direction: column;
+        padding: 1.5rem;
+        margin-top: 10px;
+        z-index: 1001;
+        border-radius: 12px;
+    }
+
+    .nav-links-container.active {
+        display: flex;
+        animation: slideDown 0.3s ease;
+    }
+
+    .nav-links-container .back-btn {
+        width: 100%;
+        text-align: center;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Specific Hamburger Button Colors (Professional) */
+    .btn-add {
+        background: rgba(99, 102, 241, 0.1) !important;
+        border: 1px solid #6366f1 !important;
+        color: #818cf8 !important;
+        /* Soft Indigo */
+    }
+
+    .btn-add:hover {
+        background: #6366f1 !important;
+        color: white !important;
+        box-shadow: 0 0 15px rgba(99, 102, 241, 0.4) !important;
+    }
+
+    .btn-delete {
+        background: rgba(255, 68, 68, 0.1) !important;
+        border: 1px solid #ff4444 !important;
+        color: #ff6b6b !important;
+        /* Soft Red */
+    }
+
+    .btn-delete:hover {
+        background: #ff4444 !important;
+        color: white !important;
+        box-shadow: 0 0 15px rgba(255, 68, 68, 0.4) !important;
+    }
+
+    .btn-exit {
+        background: transparent !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        color: rgba(255, 255, 255, 0.8) !important;
+    }
+
+    .btn-exit:hover {
+        background: rgba(255, 255, 255, 0.1) !important;
+        border-color: white !important;
+        color: white !important;
+    }
+
+    /* Header Layout Fix from previous task */
+    .nav-content {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        padding-right: 0.5rem;
+    }
+
+    .logo {
+        margin: 0;
+    }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

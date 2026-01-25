@@ -1,46 +1,94 @@
 const BACKEND_URL = "https://fest-app-backend.onrender.com";
 
 document.addEventListener('DOMContentLoaded', () => {
-    const loginForm = document.getElementById('login-form');
-    const messageDiv = document.getElementById('message');
-    const authForm = document.getElementById('authForm');
-    const formTitle = document.getElementById('form-title');
-    const submitBtn = document.getElementById('submit-btn');
-    const toggleLink = document.getElementById('toggle-auth');
-    const signupFields = document.getElementById('signup-fields');
-    const identifierLabel = document.getElementById('identifier-label');
 
-    let isLogin = true;
+    const loginSection = document.getElementById('login-section');
+    const registerSection = document.getElementById('register-section');
+    const showRegisterBtn = document.getElementById('show-register');
+    const showLoginBtn = document.getElementById('show-login');
 
-    // Toggle Login / Signup
-    toggleLink.addEventListener('click', () => {
-        isLogin = !isLogin;
-        if (isLogin) {
-            formTitle.textContent = 'Welcome Back';
-            submitBtn.textContent = 'Sign In';
-            identifierLabel.textContent = 'WhatsApp Number or Email';
-            signupFields.style.display = 'none';
-            toggleLink.innerHTML = 'New user? <span style="color:#4f46e5;font-weight:bold;">Sign Up</span>';
-            clearMessage();
-        } else {
-            formTitle.textContent = 'Create Account';
-            submitBtn.textContent = 'Sign Up';
-            identifierLabel.textContent = 'WhatsApp Number';
-            signupFields.style.display = 'block';
-            toggleLink.innerHTML = 'Already have an account? <span style="color:#4f46e5;font-weight:bold;">Sign In</span>';
-            clearMessage();
-        }
+    // Toggle Logic
+    if (showRegisterBtn && showLoginBtn) {
+        showRegisterBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            loginSection.style.display = 'none';
+            registerSection.style.display = 'block';
+        });
+
+        showLoginBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            registerSection.style.display = 'none';
+            loginSection.style.display = 'block';
+        });
+    }
+
+    // Password Toggle Logic
+    document.querySelectorAll('.toggle-password').forEach(eye => {
+        eye.addEventListener('click', function () {
+            const input = this.previousElementSibling;
+            if (input.getAttribute('type') === 'password') {
+                input.setAttribute('type', 'text');
+                this.textContent = '🙈'; // Change icon to open eye/hide
+            } else {
+                input.setAttribute('type', 'password');
+                this.textContent = '👁️'; // Change icon to closed eye/show
+            }
+        });
     });
 
-    // Submit
-    authForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
+    // Forms
+    const authLoginForm = document.getElementById('authLoginForm');
+    const authSignupForm = document.getElementById('authSignupForm');
+    const loginMessage = document.getElementById('login-message');
+    const signupMessage = document.getElementById('signup-message');
 
-        const identifier = document.getElementById('login-identifier').value;
-        const password = document.getElementById('login-password').value;
+    // === SIGN UP HANDLER ===
+    if (authSignupForm) {
+        authSignupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
 
-        // ================= LOGIN =================
-        if (isLogin) {
+            const name = document.getElementById('signup-name').value;
+            const identifier = document.getElementById('signup-identifier').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+
+            if (!/^\d{10}$/.test(identifier)) {
+                showMessage(signupMessage, 'Mobile number must be 10 digits', 'error');
+                return;
+            }
+
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/signup`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, whatsappNumber: identifier, email, password })
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    showMessage(signupMessage, 'Success! Redirecting to login...', 'success');
+                    setTimeout(() => {
+                        showLoginBtn.click();
+                    }, 1500);
+                } else {
+                    showMessage(signupMessage, data.message || 'Signup failed', 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                showMessage(signupMessage, 'Server error', 'error');
+            }
+        });
+    }
+
+    // === LOG IN HANDLER ===
+    if (authLoginForm) {
+        authLoginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const identifier = document.getElementById('login-identifier').value;
+            const password = document.getElementById('login-password').value;
+
             try {
                 const res = await fetch(`${BACKEND_URL}/api/login`, {
                     method: 'POST',
@@ -51,151 +99,98 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await res.json();
 
                 if (res.ok) {
-                    showMessage('Login successful! Redirecting...', 'success');
+                    showMessage(loginMessage, 'Welcome back!', 'success');
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('user', JSON.stringify(data.user));
                     setTimeout(() => window.location.href = '/hi.html', 1000);
                 } else {
-                    showMessage(data.message || 'Login failed', 'error');
+                    showMessage(loginMessage, data.message || 'Login failed', 'error');
                 }
             } catch (err) {
                 console.error(err);
-                showMessage('An error occurred. Please try again.', 'error');
+                showMessage(loginMessage, 'Server error', 'error');
             }
-        }
+        });
+    }
 
-        // ================= SIGNUP =================
-        else {
-            const name = document.getElementById('signup-name').value;
-            const email = document.getElementById('signup-email').value;
+    // === FORGOT PASSWORD ===
+    const forgotLink = document.getElementById('forgot-password-link');
+    const forgotModal = document.getElementById('forgot-password-modal');
+    const closeForgot = document.getElementById('close-forgot-modal');
+    const resetRequestForm = document.getElementById('resetRequestForm');
+    const resetBtn = resetRequestForm ? resetRequestForm.querySelector('button') : null;
+    const resetMessage = document.getElementById('reset-message');
 
-            if (!name || !email || !identifier || !password) {
-                showMessage('Please fill in all fields', 'error');
-                return;
-            }
+    if (forgotLink) {
+        forgotLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            forgotModal.style.display = 'flex';
+        });
+    }
 
-            if (!/^\d{10}$/.test(identifier)) {
-                showMessage('Mobile number must be exactly 10 digits', 'error');
-                return;
-            }
+    if (closeForgot) {
+        closeForgot.addEventListener('click', (e) => {
+            e.preventDefault();
+            forgotModal.style.display = 'none';
+        });
+    }
 
-            try {
-                const res = await fetch(`${BACKEND_URL}/api/signup`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        name,
-                        whatsappNumber: identifier,
-                        email,
-                        password
-                    })
-                });
-
-                const data = await res.json();
-
-                if (res.ok) {
-                    showMessage('Account created! Please login.', 'success');
-                    setTimeout(() => toggleLink.click(), 1500);
-                } else {
-                    showMessage(data.message || 'Signup failed', 'error');
-                }
-            } catch (err) {
-                console.error(err);
-                showMessage('An error occurred. Please try again.', 'error');
-            }
+    // Close modal on outside click
+    window.addEventListener('click', (e) => {
+        if (e.target == forgotModal) {
+            forgotModal.style.display = 'none';
         }
     });
-
-    // ================= FORGOT PASSWORD =================
-    const forgotPasswordLink = document.getElementById('forgot-password-link');
-    const forgotPasswordForm = document.getElementById('forgot-password-form');
-    const backToLogin = document.getElementById('back-to-login');
-    const resetRequestForm = document.getElementById('resetRequestForm');
-    const resetBtn = document.getElementById('reset-btn');
-
-    if (forgotPasswordLink) {
-        forgotPasswordLink.addEventListener('click', e => {
-            e.preventDefault();
-            loginForm.style.display = 'none';
-            forgotPasswordForm.style.display = 'block';
-            clearMessage();
-        });
-    }
-
-    if (backToLogin) {
-        backToLogin.addEventListener('click', () => {
-            forgotPasswordForm.style.display = 'none';
-            loginForm.style.display = 'block';
-            clearMessage();
-        });
-    }
 
     if (resetRequestForm) {
         resetRequestForm.addEventListener('submit', async e => {
             e.preventDefault();
             const email = document.getElementById('reset-email').value;
-
-            // --- REPLACE WITH YOUR EMAILJS KEYS ---
             const SERVICE_ID = "service_u42f0fr";
             const TEMPLATE_ID = "template_xgf3kld";
-            // Public Key is usually set in index.html, but can be passed here too if needed
-            // -------------------------------------
 
-            resetBtn.disabled = true;
-            resetBtn.textContent = 'Generating Link...';
+            if (resetBtn) {
+                resetBtn.disabled = true;
+                resetBtn.textContent = 'Generating...';
+            }
 
             try {
-                // 1. Get Token from Backend
                 const res = await fetch(`${BACKEND_URL}/api/forgot-password`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email })
                 });
-
                 const data = await res.json();
 
                 if (res.ok && data.useEmailJS) {
-                    resetBtn.textContent = 'Sending Email...';
-
-                    // 2. Send Email via EmailJS (Frontend)
+                    if (resetBtn) resetBtn.textContent = 'Sending Email...';
                     await emailjs.send(SERVICE_ID, TEMPLATE_ID, {
                         to_email: data.email,
                         reset_link: data.resetUrl
                     });
-
-                    showMessage('Password reset email sent!', 'success');
-                    resetRequestForm.reset();
-
+                    showMessage(resetMessage, 'Reset email sent!', 'success');
+                    setTimeout(() => forgotModal.style.display = 'none', 2000);
                 } else if (res.ok) {
-                    // Fallback if backend handled it (unlikely now)
-                    showMessage(data.message, 'success');
-                    resetRequestForm.reset();
+                    showMessage(resetMessage, data.message, 'success');
                 } else {
-                    showMessage(data.message || 'Failed to generate link', 'error');
+                    showMessage(resetMessage, data.message || 'Failed', 'error');
                 }
             } catch (err) {
                 console.error(err);
-                if (err.text) {
-                    // EmailJS specific error
-                    showMessage('Email Send Failed: ' + err.text, 'error');
-                } else {
-                    showMessage('An error occurred. Please try again.', 'error');
-                }
+                showMessage(resetMessage, 'Error sending email', 'error');
             } finally {
-                resetBtn.disabled = false;
-                resetBtn.textContent = 'Send Reset Link';
+                if (resetBtn) {
+                    resetBtn.disabled = false;
+                    resetBtn.textContent = 'Send Link';
+                }
             }
         });
     }
 
-    function showMessage(msg, type) {
-        messageDiv.textContent = msg;
-        messageDiv.className = `message ${type}`;
-        messageDiv.classList.remove('hidden');
-    }
-
-    function clearMessage() {
-        messageDiv.textContent = '';
-        messageDiv.classList.add('hidden');
+    function showMessage(element, msg, type) {
+        if (!element) return;
+        element.textContent = msg;
+        element.className = `message ${type}`;
+        element.style.display = 'block';
     }
 });
