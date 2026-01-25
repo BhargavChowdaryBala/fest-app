@@ -17,8 +17,8 @@ const Razorpay = require('razorpay');
 // Email Transporter Configuration
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 465,
-    secure: true, // Use SSL
+    port: 587,
+    secure: false, // Use TLS
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
@@ -34,7 +34,11 @@ const razorpay = new Razorpay({
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: '*', // Allow all origins explicitly to fix CORS issues
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-pin']
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // Required for PhonePe Callback
 // Handle JSON Parse errors
