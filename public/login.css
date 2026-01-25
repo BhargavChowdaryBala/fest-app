@@ -68,8 +68,8 @@ body {
     flex-direction: column;
     align-items: center;
 
-    /* THE ANTIGRAVITY FLOAT + SHADOW CYCLE */
-    animation: float 6s ease-in-out infinite, shadowCycle 8s linear infinite alternate;
+    /* THE ANTIGRAVITY FLOAT */
+    animation: float 6s ease-in-out infinite;
 }
 
 @keyframes float {
@@ -106,18 +106,18 @@ body {
 }
 
 .orbit-1 {
-    top: 50px;
-    /* Distance from top edge */
-    right: 50px;
-    /* Distance from right edge */
+    top: -40px;
+    /* Half shown (Center on corner) */
+    right: -40px;
+    /* Half shown */
     animation-delay: 0s, 0s;
 }
 
 .orbit-2 {
-    bottom: 50px;
-    /* Distance from bottom edge */
-    left: 50px;
-    /* Distance from left edge */
+    bottom: -40px;
+    /* Half shown */
+    left: -40px;
+    /* Half shown */
     /* Removed size/shape overrides to match orbit-1 (Cube, 80px) */
     animation: orbit 8s linear infinite, colorCycle 4s linear infinite alternate-reverse;
     /* Synced Animation */
