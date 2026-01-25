@@ -321,12 +321,30 @@ h2 {
         /* Add margin for scroll */
         /* Enable float animation again if it fits, or keep static for safe layout */
         animation: float 6s ease-in-out infinite;
+
+        /* Colored Shadow Lighting around Login Box (Mobile) */
+        box-shadow:
+            0 0 20px rgba(0, 238, 255, 0.3),
+            /* Cyan */
+            0 0 40px rgba(200, 0, 255, 0.3);
+        /* Purple */
     }
 
-    /* Ensure orbits don't cause scroll overflow */
+    /* Restore and Scale Animations for Mobile */
     .orbit-object {
-        display: none;
-        /* Hide orbits on very small screens to keep layout clean */
+        display: block;
+        transform: scale(0.6);
+        /* Make smaller to fit mobile */
+    }
+
+    .orbit-1 {
+        right: -20px;
+        top: -20px;
+    }
+
+    .orbit-2 {
+        left: -20px;
+        bottom: -20px;
     }
 }
 
