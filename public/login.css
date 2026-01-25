@@ -68,8 +68,8 @@ body {
     flex-direction: column;
     align-items: center;
 
-    /* THE ANTIGRAVITY FLOAT */
-    animation: float 6s ease-in-out infinite;
+    /* THE ANTIGRAVITY FLOAT + SHADOW CYCLE */
+    animation: float 6s ease-in-out infinite, shadowCycle 8s linear infinite alternate;
 }
 
 @keyframes float {
@@ -88,7 +88,8 @@ body {
 
 /* 3D Geometric Orbits (Pure CSS decoration) */
 .orbit-object {
-    position: absolute;
+    position: fixed;
+    /* Fixed to screen */
     width: 80px;
     /* Increased from 60px */
     height: 80px;
@@ -97,22 +98,26 @@ body {
     backdrop-filter: blur(5px);
     border: 1px solid rgba(255, 255, 255, 0.5);
     border-radius: 12px;
-    z-index: 10;
+    z-index: 0;
+    /* Behind wrapper (z-index 1 or implicit) but above bg */
     box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
     /* Combined Animations: Orbit (Position) + ColorCycle (Colors) */
     animation: orbit 8s linear infinite, colorCycle 4s linear infinite alternate;
 }
 
 .orbit-1 {
-    top: -40px;
-    /* Adjusted for size */
-    right: -40px;
+    top: 50px;
+    /* Distance from top edge */
+    right: 50px;
+    /* Distance from right edge */
     animation-delay: 0s, 0s;
 }
 
 .orbit-2 {
-    bottom: -40px;
-    left: -40px;
+    bottom: 50px;
+    /* Distance from bottom edge */
+    left: 50px;
+    /* Distance from left edge */
     /* Removed size/shape overrides to match orbit-1 (Cube, 80px) */
     animation: orbit 8s linear infinite, colorCycle 4s linear infinite alternate-reverse;
     /* Synced Animation */
@@ -128,16 +133,44 @@ body {
     }
 
     50% {
-        border-color: #c800ff;
-        box-shadow: 0 0 25px rgba(200, 0, 255, 0.5);
-        background: linear-gradient(135deg, rgba(200, 0, 255, 0.2), rgba(200, 0, 255, 0.05));
+        border-color: #ff00ff;
+        /* Magenta */
+        box-shadow: 0 0 25px rgba(255, 0, 255, 0.5);
+        background: linear-gradient(135deg, rgba(255, 0, 255, 0.2), rgba(255, 0, 255, 0.05));
     }
 
     100% {
-        border-color: #25d366;
-        /* Green */
-        box-shadow: 0 0 25px rgba(37, 211, 102, 0.5);
-        background: linear-gradient(135deg, rgba(37, 211, 102, 0.2), rgba(37, 211, 102, 0.05));
+        border-color: #00ff9d;
+        /* Bright Mint/Green */
+        box-shadow: 0 0 25px rgba(0, 255, 157, 0.5);
+        background: linear-gradient(135deg, rgba(0, 255, 157, 0.2), rgba(0, 255, 157, 0.05));
+    }
+}
+
+/* Vibrant Shadow Cycle for Login Box */
+@keyframes shadowCycle {
+    0% {
+        box-shadow: 0 0 20px rgba(0, 238, 255, 0.4), 0 0 40px rgba(0, 238, 255, 0.1);
+        /* Cyan */
+        border-color: rgba(0, 238, 255, 0.3);
+    }
+
+    33% {
+        box-shadow: 0 0 20px rgba(255, 0, 255, 0.4), 0 0 40px rgba(255, 0, 255, 0.1);
+        /* Magenta */
+        border-color: rgba(255, 0, 255, 0.3);
+    }
+
+    66% {
+        box-shadow: 0 0 20px rgba(0, 255, 255, 0.4), 0 0 40px rgba(0, 255, 255, 0.1);
+        /* Electric Blue/Cyan mix */
+        border-color: rgba(0, 255, 255, 0.3);
+    }
+
+    100% {
+        box-shadow: 0 0 20px rgba(0, 238, 255, 0.4), 0 0 40px rgba(0, 238, 255, 0.1);
+        /* Loop back */
+        border-color: rgba(0, 238, 255, 0.3);
     }
 }
 
@@ -322,12 +355,7 @@ h2 {
         /* Enable float animation again if it fits, or keep static for safe layout */
         animation: float 6s ease-in-out infinite;
 
-        /* Colored Shadow Lighting around Login Box (Mobile) */
-        box-shadow:
-            0 0 20px rgba(0, 238, 255, 0.3),
-            /* Cyan */
-            0 0 40px rgba(200, 0, 255, 0.3);
-        /* Purple */
+        /* Animation inherited from .wrapper class now includes shadowCycle */
     }
 
     /* Restore and Scale Animations for Mobile */
@@ -335,16 +363,17 @@ h2 {
         display: block;
         transform: scale(0.6);
         /* Make smaller to fit mobile */
+        z-index: 0;
     }
 
     .orbit-1 {
-        right: -20px;
-        top: -20px;
+        right: 20px;
+        top: 20px;
     }
 
     .orbit-2 {
-        left: -20px;
-        bottom: -20px;
+        left: 20px;
+        bottom: 20px;
     }
 }
 
