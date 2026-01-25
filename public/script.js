@@ -1,4 +1,4 @@
-const BACKEND_URL = "https://fest-app-backend.onrender.com";
+const BACKEND_URL = "";
 
 document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('login-form');

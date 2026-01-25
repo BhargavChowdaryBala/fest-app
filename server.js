@@ -275,19 +275,9 @@ app.post('/api/generate-id', async (req, res) => {
 
 const multer = require('multer');
 
-// Configure Multer Storage
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'public/uploads/')
-    },
-    filename: function (req, file, cb) {
-        cb(null, Date.now() + path.extname(file.originalname)) // Append extension
-    }
-});
-
+// Configure Multer Storage (Memory for Base64)
+const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
-
-
 
 // Get All Items
 app.get('/api/items', async (req, res) => {
@@ -299,34 +289,36 @@ app.get('/api/items', async (req, res) => {
     }
 });
 
-// Add New Item (Admin) - with Image Upload
+// Add New Item (Admin) - with Image Upload (Base64)
 app.post('/api/items', upload.single('image'), async (req, res) => {
     try {
         const { name, price } = req.body;
-        // req.file is the `image` file
-        // req.body will hold the text fields, if there were any
 
         if (!name || price === undefined) {
             return res.status(400).json({ message: 'Name and price are required' });
         }
 
         let imagePath = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3'; // Default
+
         if (req.file) {
-            imagePath = '/uploads/' + req.file.filename;
+            // Convert buffer to Base64
+            const b64 = Buffer.from(req.file.buffer).toString('base64');
+            const mimeType = req.file.mimetype;
+            imagePath = `data:${mimeType};base64,${b64}`;
         }
 
         const newItem = new Item({
             name,
             price,
             image: imagePath,
-            description: 'Tasty and delicious!' // Default description or could be added to form later
+            description: 'Tasty and delicious!'
         });
 
         await newItem.save();
 
         res.status(201).json(newItem);
     } catch (error) {
-        console.error("Error adding item:", error); // Log for debugging
+        console.error("Error adding item:", error);
         res.status(500).json({ message: 'Error adding item', error: error.message });
     }
 });

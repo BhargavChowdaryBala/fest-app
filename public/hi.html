@@ -3,14 +3,14 @@
 
 <head>
     <script>
-  const token = localStorage.getItem('token');
-  const user = localStorage.getItem('user');
+        const token = localStorage.getItem('token');
+        const user = localStorage.getItem('user');
 
-  if (!token || !user) {
-    // Not logged in → kick back to login
-    window.location.href = '/index.html';
-  }
-</script>
+        if (!token || !user) {
+            // Not logged in → kick back to login
+            window.location.href = '/index.html';
+        }
+    </script>
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -598,7 +598,7 @@
         // --- API CONFIGURATION ---
         // Change this URL to your Render Backend URL when deploying!
         // If empty, it assumes backend is on the same domain (good for localhost or single-server deployment)
-        const BACKEND_URL = "https://fest-app-backend.onrender.com";
+        const BACKEND_URL = "";
 
         // Helper to construct full URL
         const getApiUrl = (endpoint) => `${BACKEND_URL}${endpoint}`;
@@ -635,8 +635,19 @@
 
                 itemsGrid.innerHTML = '';
                 items.forEach(item => {
-                    // Use placeholder if no image
-                    const imgUrl = item.image   ? `${BACKEND_URL}${item.image}`   : `https://source.unsplash.com/500x300/?${encodeURIComponent(item.name)},food`;
+                    // Smart Image URL Handling:
+                    // 1. If it starts with 'data:' (Base64) -> Use as is.
+                    // 2. If it starts with 'http' (External) -> Use as is.
+                    // 3. Otherwise (Legacy relative path like '/uploads/...') -> Prepend Backend URL.
+
+                    let imgUrl;
+                    if (item.image && (item.image.startsWith('data:') || item.image.startsWith('http'))) {
+                        imgUrl = item.image;
+                    } else if (item.image) {
+                        imgUrl = `${BACKEND_URL}${item.image}`;
+                    } else {
+                        imgUrl = `https://source.unsplash.com/500x300/?${encodeURIComponent(item.name)},food`;
+                    }
 
                     const card = document.createElement('div');
                     card.className = 'item-card';

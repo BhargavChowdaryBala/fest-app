@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    
+
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,8 +11,8 @@
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script>
-      const BACKEND_URL = "https://fest-app-backend.onrender.com";
-      const getApiUrl = (endpoint) => `${BACKEND_URL}${endpoint}`;
+        const BACKEND_URL = "";
+        const getApiUrl = (endpoint) => `${BACKEND_URL}${endpoint}`;
     </script>
 
     <style>
@@ -497,7 +497,7 @@
     </div>
 
     <script>
-        
+
 
         let adminPin = localStorage.getItem('admin_pin');
         let allOrders = []; // Store orders for search/export
@@ -518,39 +518,39 @@
         }
 
         async function fetchOrders() {
-    try {
-        const res = await fetch(getApiUrl('/api/orders'), {
-            headers: {
-                'x-admin-pin': adminPin
+            try {
+                const res = await fetch(getApiUrl('/api/orders'), {
+                    headers: {
+                        'x-admin-pin': adminPin
+                    }
+                });
+
+                // Handle invalid admin PIN
+                if (res.status === 401) {
+                    localStorage.removeItem('admin_pin');
+                    alert("Invalid PIN. Please try again.");
+                    adminPin = null;
+                    requestPin();
+                    return;
+                }
+
+                // Safety check: ensure JSON response
+                const contentType = res.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await res.text();
+                    throw new Error(`Invalid response from server: ${text}`);
+                }
+
+                // Parse data
+                allOrders = await res.json();
+                renderOrders(allOrders);
+                updateStats(allOrders);
+
+            } catch (error) {
+                console.error('Error fetching orders:', error);
+                alert('Failed to load orders. Please refresh the page.');
             }
-        });
-
-        // Handle invalid admin PIN
-        if (res.status === 401) {
-            localStorage.removeItem('admin_pin');
-            alert("Invalid PIN. Please try again.");
-            adminPin = null;
-            requestPin();
-            return;
         }
-
-        // Safety check: ensure JSON response
-        const contentType = res.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            const text = await res.text();
-            throw new Error(`Invalid response from server: ${text}`);
-        }
-
-        // Parse data
-        allOrders = await res.json();
-        renderOrders(allOrders);
-        updateStats(allOrders);
-
-    } catch (error) {
-        console.error('Error fetching orders:', error);
-        alert('Failed to load orders. Please refresh the page.');
-    }
-}
 
 
         function renderOrders(ordersToRender) {
