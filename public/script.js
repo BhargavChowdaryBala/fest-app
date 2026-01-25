@@ -135,10 +135,17 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             const email = document.getElementById('reset-email').value;
 
+            // --- REPLACE WITH YOUR EMAILJS KEYS ---
+            const SERVICE_ID = "service_u42f0fr";
+            const TEMPLATE_ID = "template_xgf3kld";
+            // Public Key is usually set in index.html, but can be passed here too if needed
+            // -------------------------------------
+
             resetBtn.disabled = true;
-            resetBtn.textContent = 'Sending...';
+            resetBtn.textContent = 'Generating Link...';
 
             try {
+                // 1. Get Token from Backend
                 const res = await fetch(`${BACKEND_URL}/api/forgot-password`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -147,15 +154,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const data = await res.json();
 
-                if (res.ok) {
+                if (res.ok && data.useEmailJS) {
+                    resetBtn.textContent = 'Sending Email...';
+
+                    // 2. Send Email via EmailJS (Frontend)
+                    await emailjs.send(SERVICE_ID, TEMPLATE_ID, {
+                        to_email: data.email,
+                        reset_link: data.resetUrl
+                    });
+
+                    showMessage('Password reset email sent!', 'success');
+                    resetRequestForm.reset();
+
+                } else if (res.ok) {
+                    // Fallback if backend handled it (unlikely now)
                     showMessage(data.message, 'success');
                     resetRequestForm.reset();
                 } else {
-                    showMessage(data.message || 'Failed to send email', 'error');
+                    showMessage(data.message || 'Failed to generate link', 'error');
                 }
             } catch (err) {
                 console.error(err);
-                showMessage('An error occurred. Please try again.', 'error');
+                if (err.text) {
+                    // EmailJS specific error
+                    showMessage('Email Send Failed: ' + err.text, 'error');
+                } else {
+                    showMessage('An error occurred. Please try again.', 'error');
+                }
             } finally {
                 resetBtn.disabled = false;
                 resetBtn.textContent = 'Send Reset Link';

@@ -186,30 +186,22 @@ app.post('/api/forgot-password', async (req, res) => {
 
         await user.save();
 
-        // Send Email
+        // Send Token back to Frontend (for EmailJS)
         const protocol = req.headers['x-forwarded-proto'] || req.protocol;
         const host = req.get('host');
+        // If host is localhost, we might need adjustments, but usually this is fine.
+        // On Render, host will be the onrender.com domain.
         const resetUrl = `${protocol}://${host}/reset-password.html?token=${token}`;
-        console.log('--- PASSWORD RESET DEBUG ---');
+
+        console.log('--- PASSWORD RESET GENERATED ---');
         console.log(`Reset Link for ${user.email}: ${resetUrl}`);
-        console.log('----------------------------');
 
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to: user.email,
-            subject: 'Password Reset Request',
-            text: `You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n` +
-                `Please click on the following link, or paste this into your browser to complete the process:\n\n` +
-                `${resetUrl}\n\n` +
-                `If you did not request this, please ignore this email and your password will remain unchanged.\n`
-        };
-
-        transporter.sendMail(mailOptions, (err, response) => {
-            if (err) {
-                console.error('Email Error:', err);
-                return res.status(500).json({ message: 'Error sending email' });
-            }
-            res.json({ message: 'Password reset email sent' });
+        // Return the info needed for EmailJS
+        res.json({
+            message: 'Reset token generated',
+            email: user.email,
+            resetUrl: resetUrl,
+            useEmailJS: true
         });
 
     } catch (error) {
