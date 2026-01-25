@@ -19,12 +19,16 @@ const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
     port: 587,
     secure: false, // Use TLS
-    logger: true, // Log to console
-    debug: true,  // Include debug info
+    logger: true,
+    debug: true,
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
-    }
+    },
+    tls: {
+        rejectUnauthorized: false
+    },
+    family: 4 // Force IPv4
 });
 
 // Razorpay Instance
