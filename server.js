@@ -15,12 +15,16 @@ const crypto = require('crypto');
 const Razorpay = require('razorpay');
 
 // Email Transporter Configuration (Gmail App Password)
+// Email Transporter Configuration (Gmail App Password)
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true, // true for 465, false for other ports
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
     },
+    family: 4, // Force IPv4 to prevent timeouts on some cloud providers
     logger: true,
     debug: true
 });
