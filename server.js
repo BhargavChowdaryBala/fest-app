@@ -14,14 +14,13 @@ const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 const Razorpay = require('razorpay');
 
-// Email Transporter Configuration
+// Email Transporter Configuration (Gmail App Password)
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
     },
-    family: 4, // Force IPv4
     logger: true,
     debug: true
 });
@@ -226,6 +225,12 @@ app.post('/api/reset-password', async (req, res) => {
 
         if (!user) {
             return res.status(400).json({ message: 'Password reset token is invalid or has expired' });
+        }
+
+        // Validate Password Strength
+        const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/;
+        if (!passwordRegex.test(newPassword)) {
+            return res.status(400).json({ message: 'Password must be at least 8 characters long and include at least one number and one special character.' });
         }
 
         // Hash new password
