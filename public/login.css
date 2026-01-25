@@ -13,7 +13,9 @@ body {
     align-items: center;
     min-height: 100vh;
     background: #000;
-    overflow: hidden;
+    overflow-x: hidden;
+    /* Allow vertical scroll, hide horizontal */
+    overflow-y: auto;
     color: white;
 }
 
@@ -304,13 +306,27 @@ h2 {
 /* Mobile */
 @media (max-width: 480px) {
     .wrapper {
-        width: 100%;
-        height: 100vh;
-        border-radius: 0;
-        border: none;
-        justify-content: center;
-        /* Remove float on mobile to prevent layout shift */
-        animation: none;
+        width: 90%;
+        /* Breathing room */
+        max-width: 400px;
+        height: auto;
+        /* Allow content to dictate height */
+        min-height: auto;
+        border-radius: 20px;
+        /* Keep rounded corners looks better */
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        /* Keep border */
+        padding: 30px 20px;
+        margin: 20px 0;
+        /* Add margin for scroll */
+        /* Enable float animation again if it fits, or keep static for safe layout */
+        animation: float 6s ease-in-out infinite;
+    }
+
+    /* Ensure orbits don't cause scroll overflow */
+    .orbit-object {
+        display: none;
+        /* Hide orbits on very small screens to keep layout clean */
     }
 }
 
