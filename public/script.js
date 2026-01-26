@@ -2,6 +2,8 @@ const BACKEND_URL = "https://fest-app-backend.onrender.com";
 
 document.addEventListener('DOMContentLoaded', () => {
 
+    initBackgroundAnimation();
+
     const loginSection = document.getElementById('login-section');
     const registerSection = document.getElementById('register-section');
     const showRegisterBtn = document.getElementById('show-register');
@@ -218,5 +220,114 @@ document.addEventListener('DOMContentLoaded', () => {
         element.textContent = msg;
         element.className = `message ${type}`;
         element.style.display = 'block';
+    }
+
+    function initBackgroundAnimation() {
+        const container = document.getElementById('background-animation');
+        if (!container) return;
+
+        // Clear existing shapes
+        container.innerHTML = '';
+
+        const colors = ['#0ef', '#ff00ff', '#00ff9d']; // Cyan, Magenta, Green
+        const shapes = ['shape-circle', 'shape-square', 'shape-triangle'];
+
+        // Mobile Optimization: Fewer shapes for professional look on small screens
+        const isMobile = window.innerWidth < 768;
+        const numShapes = isMobile ? 8 : 20;
+
+        // Initial spawn
+        for (let i = 0; i < numShapes; i++) {
+            spawnShape(container, colors, shapes, true);
+        }
+    }
+
+    function spawnShape(container, colors, shapes, initial = false) {
+        const el = document.createElement('div');
+        el.classList.add('geo-shape');
+
+        const shapeType = shapes[Math.floor(Math.random() * shapes.length)];
+        el.classList.add(shapeType);
+
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        el.style.color = color;
+
+        // Size: 40px to 100px
+        const size = Math.floor(Math.random() * 60) + 40;
+        el.style.width = `${size}px`;
+        el.style.height = `${size}px`;
+
+        // Handle SVG Triangle for hollow look
+        if (shapeType === 'shape-triangle') {
+            el.innerHTML = `<svg viewBox="0 0 100 100" style="width:100%; height:100%; overflow:visible;">
+                <polygon points="50,5 95,95 5,95" fill="none" stroke="currentColor" stroke-width="8" stroke-linejoin="round" />
+            </svg>`;
+            el.style.border = 'none';
+        }
+
+        container.appendChild(el);
+
+        const viewportW = window.innerWidth;
+        const viewportH = window.innerHeight;
+        const offset = 200;
+
+        // 0: Top, 1: Right, 2: Bottom, 3: Left
+        let startSide = Math.floor(Math.random() * 4);
+        let endSide = (startSide + 2) % 4; // Opposite side 
+
+        // Randomize end side slightly
+        if (Math.random() > 0.6) endSide = (endSide + 1) % 4;
+
+
+        const getCoords = (side) => {
+            let x, y;
+            switch (side) {
+                case 0: // Top
+                    x = Math.random() * viewportW;
+                    y = -offset;
+                    break;
+                case 1: // Right
+                    x = viewportW + offset;
+                    y = Math.random() * viewportH;
+                    break;
+                case 2: // Bottom
+                    x = Math.random() * viewportW;
+                    y = viewportH + offset;
+                    break;
+                case 3: // Left
+                    x = -offset;
+                    y = Math.random() * viewportH;
+                    break;
+            }
+            return { x, y };
+        };
+
+        let start = getCoords(startSide);
+        let end = getCoords(endSide);
+
+        if (initial) {
+            start.x = Math.random() * viewportW;
+            start.y = Math.random() * viewportH;
+        }
+
+        // Speed: 4s to 8s
+        const duration = (Math.random() * 4000) + 4000;
+
+        const rotationStart = Math.random() * 360;
+        const rotationEnd = rotationStart + (Math.random() > 0.5 ? 180 : -180);
+
+        const animation = el.animate([
+            { transform: `translate(${start.x}px, ${start.y}px) rotate(${rotationStart}deg)` },
+            { transform: `translate(${end.x}px, ${end.y}px) rotate(${rotationEnd}deg)` }
+        ], {
+            duration: duration,
+            easing: 'linear',
+            fill: 'forwards'
+        });
+
+        animation.onfinish = () => {
+            el.remove();
+            spawnShape(container, colors, shapes);
+        };
     }
 });

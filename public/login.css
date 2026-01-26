@@ -209,6 +209,7 @@ h2 {
     letter-spacing: 1px;
     text-transform: uppercase;
     background: linear-gradient(90deg, #ffffff, #a0a0a0);
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
@@ -437,3 +438,46 @@ h2 {
     box-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
     transform: translateY(-2px);
 }
+
+/* === DYNAMIC NEON BACKGROUND ANIMATION === */
+#background-animation {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -5;
+    /* Behind everything */
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.geo-shape {
+    position: absolute;
+    opacity: 0.5;
+    /* Reduced opacity */
+    /* Single drop-shadow for subtle glow + blur */
+    filter: drop-shadow(0 0 8px currentColor) blur(1px);
+}
+
+/* Shape Definitions */
+.shape-circle {
+    border-radius: 50%;
+    border: 5px solid currentColor;
+    /* Thicker to match triangles */
+    background: transparent;
+}
+
+.shape-square {
+    border: 5px solid currentColor;
+    /* Thicker to match triangles */
+    background: transparent;
+}
+
+.shape-triangle {
+    background: transparent;
+    border: none;
+    /* SVG implementation */
+}
+
+/* Animations are now handled in JS via Web Animations API for full screen drift */
