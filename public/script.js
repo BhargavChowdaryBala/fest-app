@@ -2,7 +2,29 @@ const BACKEND_URL = "https://fest-app-backend.onrender.com";
 
 document.addEventListener('DOMContentLoaded', () => {
 
+    // Expose Splash Functions Globally
+    window.showSplash = () => {
+        const splash = document.getElementById('splash-screen');
+        if (splash) {
+            splash.classList.remove('fade-out');
+            splash.style.display = 'flex';
+            splash.style.visibility = 'visible';
+            splash.style.opacity = '1';
+        }
+    };
+
+    window.dismissSplash = () => {
+        const splash = document.getElementById('splash-screen');
+        if (splash) {
+            splash.classList.add('fade-out');
+            setTimeout(() => {
+                splash.style.display = 'none';
+            }, 800);
+        }
+    };
+
     initBackgroundAnimation();
+    initSplashScreen();
 
     const loginSection = document.getElementById('login-section');
     const registerSection = document.getElementById('register-section');
@@ -59,6 +81,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            // Show Splash
+            window.showSplash();
+
             try {
                 const res = await fetch(`${BACKEND_URL}/api/signup`, {
                     method: 'POST',
@@ -69,15 +94,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await res.json();
 
                 if (res.ok) {
+                    window.dismissSplash(); // Dismiss
                     showMessage(signupMessage, 'Success! Redirecting to login...', 'success');
                     setTimeout(() => {
                         showLoginBtn.click();
                     }, 1500);
                 } else {
+                    window.dismissSplash(); // Dismiss
                     showMessage(signupMessage, data.message || 'Signup failed', 'error');
                 }
             } catch (err) {
                 console.error(err);
+                window.dismissSplash(); // Dismiss
                 showMessage(signupMessage, 'Server error', 'error');
             }
         });
@@ -92,10 +120,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const password = document.getElementById('login-password').value;
             const loginBtn = authLoginForm.querySelector('button');
 
-            // 1. Show Loading State
-            loginBtn.disabled = true;
-            const originalText = loginBtn.textContent; // "Enter Void"
-            loginBtn.innerHTML = '<div class="loading-dots"><span></span><span></span><span></span></div>';
+            // 1. Show Loading State (Splash)
+            window.showSplash();
 
             try {
                 const res = await fetch(`${BACKEND_URL}/api/login`, {
@@ -107,35 +133,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await res.json();
 
                 if (res.ok) {
-                    // 2. Show Success State
-                    loginBtn.textContent = 'Welcome Back!';
-                    loginBtn.style.background = 'linear-gradient(135deg, #00ff7f, #00cc66)'; // Greenish hint
-                    loginBtn.style.color = '#fff';
-
+                    // Success
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('user', JSON.stringify(data.user));
 
                     // Redirect
-                    setTimeout(() => window.location.href = '/hi.html', 1500);
+                    window.location.href = '/hi.html';
                 } else {
-                    // 3. Show Error State
+                    // Error
+                    window.dismissSplash();
                     throw new Error(data.message || 'Invalid Credentials');
                 }
             } catch (err) {
                 console.error(err);
+                window.dismissSplash();
 
-                // Show Error on Button
+                // Show Error on Button (Legacy UX, kept for backup)
                 loginBtn.textContent = err.message || 'Invalid Credentials';
                 loginBtn.style.background = 'linear-gradient(135deg, #ff4444, #cc0000)'; // Reddish hint
-                loginBtn.style.color = '#fff';
 
-                // Reset after 3 seconds
                 setTimeout(() => {
                     loginBtn.textContent = 'Enter Void';
-                    loginBtn.disabled = false;
-                    // Reset styles (empty string reverts to CSS)
                     loginBtn.style.background = '';
-                    loginBtn.style.color = '';
                 }, 3000);
             }
         });
@@ -329,5 +348,91 @@ document.addEventListener('DOMContentLoaded', () => {
             el.remove();
             spawnShape(container, colors, shapes);
         };
+    }
+
+    function initSplashScreen() {
+        const splash = document.getElementById('splash-screen');
+        const sentenceEl = document.getElementById('loading-sentence');
+        if (!splash || !sentenceEl) return;
+
+        const sentences = [
+            "Igniting the Fest Spirit...",
+            "Waking up the server...",
+            "Rolling out the red carpet...",
+            "Preparing the main stage...",
+            "Tuning the instruments...",
+            "Spotlight is warming up..."
+        ];
+
+        let sentenceIndex = 0;
+
+        // Rotate Sentences every 2 seconds
+        const textInterval = setInterval(() => {
+            if (splash.style.display !== 'none') {
+                sentenceEl.style.opacity = 0;
+                setTimeout(() => {
+                    sentenceIndex = (sentenceIndex + 1) % sentences.length;
+                    sentenceEl.textContent = sentences[sentenceIndex];
+                    sentenceEl.style.opacity = 1;
+                }, 500);
+            }
+        }, 2500);
+
+        // Ping Backend Loop
+        const startTime = Date.now();
+        const minDisplayTime = 2000;
+        let isDismissed = false;
+
+        const pingBackend = async () => {
+            if (isDismissed) return;
+
+            try {
+                // We use a timeout signal for the fetch itself so we don't hang forever on one request
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s per request
+
+                const res = await fetch(`${BACKEND_URL}/api/config`, { signal: controller.signal });
+                clearTimeout(timeoutId);
+
+                if (res.ok) {
+                    // Backend is Awake!
+                    const elapsedTime = Date.now() - startTime;
+                    const remainingTime = Math.max(0, minDisplayTime - elapsedTime);
+
+                    setTimeout(() => {
+                        dismissSplash();
+                    }, remainingTime);
+                } else {
+                    throw new Error('Backend responded but not ready');
+                }
+            } catch (err) {
+                console.log("Waiting for backend...", err.message);
+                // Retry after 2 seconds
+                setTimeout(pingBackend, 2000);
+            }
+        };
+
+        // Start Pinging
+        pingBackend();
+
+        // Safety Force Dismiss after 60 seconds (Render usually wakes up in 30-50s)
+        setTimeout(() => {
+            if (!isDismissed) {
+                console.warn("Backend wake up timeout - forcing entry");
+                dismissSplash();
+            }
+        }, 60000);
+
+        function dismissSplash() {
+            if (isDismissed) return;
+            isDismissed = true;
+
+            clearInterval(textInterval);
+            splash.classList.add('fade-out');
+
+            setTimeout(() => {
+                splash.style.display = 'none';
+            }, 800);
+        }
     }
 });

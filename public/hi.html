@@ -347,6 +347,57 @@
 </head>
 
 <body>
+
+    <!-- SPLASH SCREEN -->
+    <div id="splash-screen">
+        <div class="splash-content">
+            <div class="logo-container">
+                <div class="glimpse-ring"></div>
+                <img src="logo.jpg" alt="Fest Logo" class="splash-logo">
+            </div>
+            <div class="loading-text-container">
+                <p id="loading-sentence">Preparing your menu...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SPLASH SCREEN SCRIPT (Inline for hi.html) -->
+    <script>
+        (function () {
+            const splash = document.getElementById('splash-screen');
+            const sentenceEl = document.getElementById('loading-sentence');
+
+            if (splash && sentenceEl) {
+                const sentences = [
+                    "Preparing your menu...",
+                    "Fetching delicious items...",
+                    "Setting the table...",
+                    "Almost ready to feast...",
+                ];
+
+                let sentenceIndex = 0;
+                setInterval(() => {
+                    if (splash.style.display !== 'none' && !splash.classList.contains('fade-out')) {
+                        sentenceEl.style.opacity = 0;
+                        setTimeout(() => {
+                            sentenceIndex = (sentenceIndex + 1) % sentences.length;
+                            sentenceEl.textContent = sentences[sentenceIndex];
+                            sentenceEl.style.opacity = 1;
+                        }, 500);
+                    }
+                }, 2000);
+
+                // Expose dismiss function for loadItems to call
+                window.dismissMyAppSplash = function () {
+                    splash.classList.add('fade-out');
+                    setTimeout(() => {
+                        splash.style.display = 'none';
+                    }, 800);
+                }
+            }
+        })();
+    </script>
+
     <nav class="glass-nav">
         <div class="nav-content">
             <div class="nav-header">
@@ -703,9 +754,14 @@
                     itemsGrid.appendChild(card);
                 });
 
+                // Dismiss Splash after loading
+                if (window.dismissMyAppSplash) setTimeout(window.dismissMyAppSplash, 1000); // 1s delay for effect
+
             } catch (error) {
                 console.error('Error loading items:', error);
                 itemsGrid.innerHTML = '<div style="text-align:center; color: #ff4444; width: 100%; grid-column: 1/-1;">Error loading menu.</div>';
+                // Dismiss Splash even on error
+                if (window.dismissMyAppSplash) window.dismissMyAppSplash();
             }
         }
 
