@@ -388,11 +388,19 @@
                 }, 2000);
 
                 // Expose dismiss function for loadItems to call
+                const startTime = Date.now();
+                const minTime = 1500; // 1.5s for hi.html
+
                 window.dismissMyAppSplash = function () {
-                    splash.classList.add('fade-out');
+                    const elapsed = Date.now() - startTime;
+                    const remaining = Math.max(0, minTime - elapsed);
+
                     setTimeout(() => {
-                        splash.style.display = 'none';
-                    }, 800);
+                        splash.classList.add('fade-out');
+                        setTimeout(() => {
+                            splash.style.display = 'none';
+                        }, 800);
+                    }, remaining);
                 }
             }
         })();

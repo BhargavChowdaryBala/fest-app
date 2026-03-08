@@ -28,9 +28,11 @@
     <!-- Splash Screen -->
     <div id="splash-screen" class="splash-screen">
         <div class="splash-content">
-            <img src="logo.jpg" alt="Logo" class="splash-logo">
+            <div class="logo-container">
+                <div class="glimpse-ring"></div>
+                <img src="logo.jpg" alt="Logo" class="splash-logo">
+            </div>
             <div class="splash-loading-container">
-                <div class="loader"></div>
                 <div id="splash-status" class="loader-text">Waking up the system...</div>
 
                 <div id="timer-container" class="splash-timer-container">
@@ -49,22 +51,37 @@
             const timerDisplay = document.getElementById('splash-timer');
             const statusText = document.getElementById('splash-status');
 
+            const startTime = Date.now();
+            const minDisplayTime = 2000; // 2 seconds (at least two full rotations of inner ring)
             let timeLeft = 30;
             let timerInterval;
+            let isDismissed = false;
 
             // Function to check if backend is awake
             async function checkHealth() {
+                if (isDismissed) return;
                 try {
                     const res = await fetch(getApiUrl('/api/health'));
                     if (res.ok) {
-                        finishSplash();
+                        tryFinishSplash();
                     }
                 } catch (e) {
                     // Still asleep or network issue
                 }
             }
 
-            function finishSplash() {
+            function tryFinishSplash() {
+                const elapsed = Date.now() - startTime;
+                const remaining = Math.max(0, minDisplayTime - elapsed);
+
+                setTimeout(() => {
+                    finishSplashNow();
+                }, remaining);
+            }
+
+            function finishSplashNow() {
+                if (isDismissed) return;
+                isDismissed = true;
                 clearInterval(timerInterval);
                 splash.classList.add('fade-out');
                 setTimeout(() => {
@@ -82,9 +99,9 @@
                     if (timerDisplay) timerDisplay.textContent = `00:${seconds}`;
 
                     if (timeLeft <= 0) {
-                        finishSplash(); // Move to login anyway
+                        finishSplashNow();
                     } else {
-                        checkHealth(); // Keep checking while counting down
+                        checkHealth();
                     }
                 }, 1000);
             }
@@ -94,14 +111,14 @@
 
             // After 2 seconds, if still here, show the timer
             setTimeout(() => {
-                if (!splash.classList.contains('fade-out')) {
+                if (!isDismissed) {
                     startTimer();
                 }
-            }, 2000);
+            }, 2500);
 
             // Periodically check if timer isn't started yet
             const healthInterval = setInterval(() => {
-                if (splash.classList.contains('fade-out')) {
+                if (isDismissed) {
                     clearInterval(healthInterval);
                 } else {
                     checkHealth();

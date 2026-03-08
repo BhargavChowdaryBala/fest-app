@@ -895,26 +895,44 @@ body::after {
 }
 
 /* White Glimpse Rotating Ring */
+.logo-container {
+    position: relative;
+    width: 140px;
+    height: 140px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 .glimpse-ring {
     position: absolute;
-    top: 5px;
-    /* Adjust for padding difference */
-    left: 5px;
-    width: 110px;
-    /* Slightly larger than logo */
-    height: 110px;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     border-radius: 50%;
-    border: 3px solid transparent;
-    /* Base transparent */
-    border-top-color: #ffffff;
-    /* Bright white head */
-    border-right-color: rgba(255, 255, 255, 0.5);
-    /* Fading tail */
-    border-bottom-color: rgba(255, 255, 255, 0.1);
-    box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
-    /* Glow */
-    animation: rotateGlimpse 1.2s linear infinite;
+    border: 4px solid transparent;
+    border-top-color: #0ef;
+    /* Cyan/Electric blue spark */
+    border-right-color: rgba(0, 238, 255, 0.3);
+    box-shadow: 0 0 15px #0ef, 0 0 30px rgba(0, 238, 255, 0.4);
+    filter: blur(1px);
+    animation: rotateGlimpse 1s linear infinite;
     z-index: 1;
+}
+
+/* Secondary blur spark for depth */
+.glimpse-ring::after {
+    content: '';
+    position: absolute;
+    inset: -5px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    border-bottom-color: #ff00ff;
+    /* Magenta tail */
+    border-left-color: rgba(255, 0, 255, 0.2);
+    filter: blur(4px);
+    animation: rotateGlimpse 1.5s linear infinite reverse;
 }
 
 @keyframes rotateGlimpse {
