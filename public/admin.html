@@ -10,10 +10,6 @@
     <link rel="icon" href="logo.jpg">
     <link rel="stylesheet" href="admin-antigravity.css">
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-    <script>
-        const BACKEND_URL = "https://fest-app-backend.onrender.com";
-        const getApiUrl = (endpoint) => `${BACKEND_URL}${endpoint}`;
-    </script>
 
     <style>
         body {
@@ -393,27 +389,20 @@
     <div class="bg-shape bg-shape-2"></div>
     <nav class="glass-nav">
         <div class="nav-content">
-            <!-- 1. Logo -->
-            <span class="logo">Admin</span>
-
-            <!-- 2. Scan Button (Center) -->
-            <button onclick="openScannerModal()" class="back-btn scan-btn-premium">
-                <span style="font-size: 1.1em;">📷</span> Scan
-            </button>
-
-            <!-- 3. Hamburger (Right) -->
-            <button class="hamburger-btn" onclick="toggleAdminMenu()">☰</button>
-
-            <!-- 4. Dropdown Menu (Hidden/Absolute) -->
-            <div class="nav-links-container" id="admin-nav-links">
-                <button onclick="openAddItemModal()" class="back-btn btn-add">
-                    + Add Item
-                </button>
-                <button onclick="openDeleteItemModal()" class="back-btn btn-delete">
-                    - Delete Item
-                </button>
-                <a href="/hi.html" class="back-btn btn-exit">Exit to Menu</a>
+            <span class="logo">🎉 Admin Dashboard</span>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <button onclick="openScannerModal()" class="back-btn"
+                    style="background: rgba(37, 211, 102, 0.2); border-color: #25D366; color: #25D366;">📷 Scan</button>
+                <button onclick="openManualOrderModal()" class="back-btn"
+                    style="background: rgba(251, 191, 36, 0.2); border-color: #fbbf24; color: #fbbf24;">💳 Manual
+                    Order</button>
+                <button onclick="openAddItemModal()" class="back-btn"
+                    style="background: rgba(99, 102, 241, 0.4); border-color: #6366f1;">+ Add</button>
+                <button onclick="openDeleteItemModal()" class="back-btn"
+                    style="background: rgba(255, 68, 68, 0.2); border-color: #ff4444; color: #ff6b6b;">- Delete</button>
+                <a href="/hi.html" class="back-btn">Menu</a>
             </div>
+        </div>
         </div>
     </nav>
 
@@ -502,6 +491,31 @@
         </div>
     </div>
 
+    <!-- Manual Order Modal -->
+    <div id="manualOrderModal" class="modal">
+        <div class="modal-content">
+            <h2>Create Manual Order</h2>
+            <p style="color: rgba(255,255,255,0.6); font-size: 0.85rem; margin-bottom: 1rem;">Use this to issue tickets
+                for verified payments that failed to sync.</p>
+            <div class="form-group">
+                <label>Customer Mobile or Email</label>
+                <input type="text" id="manualCustomer" placeholder="e.g. 9876543210">
+            </div>
+            <div class="form-group">
+                <label>Item Description</label>
+                <input type="text" id="manualItemName" placeholder="e.g. Burger + Fries">
+            </div>
+            <div class="form-group">
+                <label>Total Amount (₹)</label>
+                <input type="number" id="manualAmount" placeholder="e.g. 150">
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeManualOrderModal()">Cancel</button>
+                <button class="btn-submit" onclick="submitManualOrder()">Create Ticket</button>
+            </div>
+        </div>
+    </div>
+
     <!-- QR Scanner Modal -->
     <div id="scannerModal" class="modal">
         <div class="modal-content" style="max-width: 500px; text-align: center;">
@@ -514,9 +528,8 @@
         </div>
     </div>
 
+    <script src="config.js"></script>
     <script>
-
-
         let adminPin = localStorage.getItem('admin_pin');
         let allOrders = []; // Store orders for search/export
 
@@ -686,7 +699,8 @@
             try {
                 const res = await fetch(getApiUrl('/api/items'), {
                     method: 'POST',
-                    body: formData // No headers needed, browser sets multipart/form-data
+                    headers: { 'x-admin-pin': adminPin },
+                    body: formData // No Content-Type header needed for FormData
                 });
 
                 if (res.ok) {
@@ -746,7 +760,8 @@
 
             try {
                 const res = await fetch(getApiUrl(`/api/items/${id}`), {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    headers: { 'x-admin-pin': adminPin }
                 });
 
                 if (res.ok) {
@@ -817,9 +832,13 @@
 
             try {
                 // ... (rest of scan logic)
-                const res = await fetch(getApiUrl(`/api/orders/mark-used/${decodedText}`), {
+                const res = await fetch(getApiUrl('/api/mark-used'), {
                     method: 'POST',
-                    headers: { 'x-admin-pin': adminPin }
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-admin-pin': adminPin
+                    },
+                    body: JSON.stringify({ uniqueId: decodedText })
                 });
                 const data = await res.json();
 
@@ -847,12 +866,14 @@
         // --- Hamburger Toggle ---
         function toggleAdminMenu() {
             const menu = document.getElementById('admin-nav-links');
-            if (menu.style.display === 'flex') {
-                menu.style.display = 'none'; // Close
-                menu.classList.remove('active');
-            } else {
-                menu.style.display = 'flex'; // Open
-                menu.classList.add('active');
+            if (menu) {
+                if (menu.style.display === 'flex') {
+                    menu.style.display = 'none'; // Close
+                    menu.classList.remove('active');
+                } else {
+                    menu.style.display = 'flex'; // Open
+                    menu.classList.add('active');
+                }
             }
         }
 
@@ -860,12 +881,59 @@
         window.addEventListener('click', (e) => {
             const menu = document.getElementById('admin-nav-links');
             const hamburger = document.querySelector('.hamburger-btn');
-            if (menu.classList.contains('active') && !menu.contains(e.target) && e.target !== hamburger) {
+            if (menu && menu.classList.contains('active') && !menu.contains(e.target) && e.target !== hamburger) {
                 menu.style.display = 'none';
                 menu.classList.remove('active');
             }
         });
 
+        // --- Manual Order Management ---
+        const manualModal = document.getElementById('manualOrderModal');
+        function openManualOrderModal() { manualModal.style.display = 'flex'; }
+        function closeManualOrderModal() {
+            manualModal.style.display = 'none';
+            document.getElementById('manualCustomer').value = '';
+            document.getElementById('manualItemName').value = '';
+            document.getElementById('manualAmount').value = '';
+        }
+
+        async function submitManualOrder() {
+            const customer = document.getElementById('manualCustomer').value;
+            const itemName = document.getElementById('manualItemName').value;
+            const amount = document.getElementById('manualAmount').value;
+
+            if (!customer || !itemName || !amount) {
+                alert('Please fill all fields');
+                return;
+            }
+
+            try {
+                const res = await fetch(getApiUrl('/api/manual-order'), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-admin-pin': adminPin
+                    },
+                    body: JSON.stringify({
+                        items: [{ name: itemName, price: Number(amount) }],
+                        totalAmount: Number(amount),
+                        mobileNumber: customer.includes('@') ? '-' : customer,
+                        email: customer.includes('@') ? customer : '-'
+                    })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    alert(`Order Created! ID: ${data.uniqueId}`);
+                    closeManualOrderModal();
+                    fetchOrders(); // Refresh table
+                } else {
+                    alert(data.message || 'Failed to create order');
+                }
+            } catch (err) {
+                alert('Connection Error');
+            }
+        }
     </script>
 </body>
 

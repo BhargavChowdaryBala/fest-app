@@ -70,6 +70,7 @@
         <button onclick="generateNewTest()">Generate New Test ID</button>
     </div>
 
+    <script src="config.js"></script>
     <script>
         // generate a random test ID
         async function generateNewTest() {
@@ -79,11 +80,20 @@
 
             // 1. Create a dummy order so the ID is valid in the DB
             const testItems = [{ name: "Test Item", price: 10 }];
+            const pin = localStorage.getItem('admin_pin') || prompt('Enter Admin PIN to generate test ID:');
+            if (!pin) {
+                statusDiv.textContent = "Error: Admin PIN required";
+                return;
+            }
+            localStorage.setItem('admin_pin', pin);
 
             try {
-                const res = await fetch('/api/generate-id', {
+                const res = await fetch(getApiUrl('/api/generate-id'), {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-admin-pin': pin
+                    },
                     body: JSON.stringify({
                         items: testItems,
                         totalAmount: 10,

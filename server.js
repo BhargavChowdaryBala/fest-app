@@ -70,12 +70,25 @@ if (!fs.existsSync(uploadsPath)) {
     fs.mkdirSync(uploadsPath, { recursive: true });
 }
 
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok' });
+});
+
 // Serve frontend + uploads
 app.use(express.static('public'));
 app.use('/uploads', express.static(uploadsPath));
 
+const ADMIN_PIN = process.env.ADMIN_DASHBOARD_PASSWORD || "1234";
 
-const ADMIN_PIN = process.env.ADMIN_DASHBOARD_PASSWORD || "1234"; // Use .env or fallback
+// Middleware to protect admin routes
+const adminAuth = (req, res, next) => {
+    const pin = req.headers['x-admin-pin'];
+    if (pin === ADMIN_PIN) {
+        next();
+    } else {
+        res.status(401).json({ message: 'Unauthorized: Invalid Admin PIN' });
+    }
+};
 
 // Database Connection
 mongoose.connect(process.env.MONGO_URI, { dbName: 'fest_users' })
@@ -244,7 +257,7 @@ app.post('/api/reset-password', async (req, res) => {
 });
 
 // Generate Fest ID (Legacy or Internal)
-app.post('/api/generate-id', async (req, res) => {
+app.post('/api/generate-id', adminAuth, async (req, res) => {
     try {
         const { items, totalAmount, mobileNumber, email, transactionId } = req.body;
 
@@ -290,7 +303,7 @@ app.get('/api/items', async (req, res) => {
 });
 
 // Add New Item (Admin) - with Image Upload (Base64)
-app.post('/api/items', upload.single('image'), async (req, res) => {
+app.post('/api/items', adminAuth, upload.single('image'), async (req, res) => {
     try {
         const { name, price } = req.body;
 
@@ -324,7 +337,7 @@ app.post('/api/items', upload.single('image'), async (req, res) => {
 });
 
 // Delete Item (Admin)
-app.delete('/api/items/:id', async (req, res) => {
+app.delete('/api/items/:id', adminAuth, async (req, res) => {
     try {
         const { id } = req.params;
         const result = await Item.findByIdAndDelete(id);
@@ -383,13 +396,8 @@ app.post('/api/my-orders', async (req, res) => {
 });
 
 // Get All Orders (Admin)
-app.get('/api/orders', async (req, res) => {
+app.get('/api/orders', adminAuth, async (req, res) => {
     try {
-        const adminPin = req.headers['x-admin-pin'];
-        if (adminPin !== ADMIN_PIN) {
-            return res.status(401).json({ message: 'Unauthorized: Invalid Admin PIN' });
-        }
-
         const orders = await Order.find().sort({ createdAt: -1 });
         res.json(orders);
     } catch (error) {
@@ -398,7 +406,7 @@ app.get('/api/orders', async (req, res) => {
 });
 
 // Mark Fest ID as Used
-app.post('/api/mark-used', async (req, res) => {
+app.post('/api/mark-used', adminAuth, async (req, res) => {
     try {
         const { uniqueId } = req.body;
 
@@ -490,6 +498,29 @@ app.post('/api/verify-payment', async (req, res) => {
 
     } catch (error) {
         console.error("Payment Verification Error:", error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
+app.post('/api/manual-order', adminAuth, async (req, res) => {
+    try {
+        const { items, totalAmount, mobileNumber, email } = req.body;
+
+        const uniqueId = 'FEST-' + Math.floor(1000 + Math.random() * 9000);
+
+        const newOrder = new Order({
+            uniqueId,
+            items,
+            totalAmount,
+            mobileNumber,
+            email,
+            transactionId: 'MANUAL_PAYMENT',
+            status: 'paid'
+        });
+
+        await newOrder.save();
+        res.json({ message: 'Manual order created successfully', uniqueId, order: newOrder });
+    } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });

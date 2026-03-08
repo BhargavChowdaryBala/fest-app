@@ -897,23 +897,34 @@ body::after {
 /* White Glimpse Rotating Ring */
 .glimpse-ring {
     position: absolute;
-    top: 5px; /* Adjust for padding difference */
+    top: 5px;
+    /* Adjust for padding difference */
     left: 5px;
-    width: 110px; /* Slightly larger than logo */
+    width: 110px;
+    /* Slightly larger than logo */
     height: 110px;
     border-radius: 50%;
-    border: 3px solid transparent; /* Base transparent */
-    border-top-color: #ffffff; /* Bright white head */
-    border-right-color: rgba(255, 255, 255, 0.5); /* Fading tail */
-    border-bottom-color: rgba(255, 255, 255, 0.1); 
-    box-shadow: 0 0 20px rgba(255, 255, 255, 0.8); /* Glow */
+    border: 3px solid transparent;
+    /* Base transparent */
+    border-top-color: #ffffff;
+    /* Bright white head */
+    border-right-color: rgba(255, 255, 255, 0.5);
+    /* Fading tail */
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+    /* Glow */
     animation: rotateGlimpse 1.2s linear infinite;
     z-index: 1;
 }
 
 @keyframes rotateGlimpse {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 .loading-text-container {
@@ -931,4 +942,133 @@ body::after {
     letter-spacing: 1px;
     text-align: center;
     transition: opacity 0.5s ease;
+}
+
+/* Force 2-column mobile layout - Override */
+@media (max-width: 768px) {
+    .menu-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+        padding: 8px !important;
+    }
+
+    .item-card {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+}
+
+/* Splash Screen Styles */
+.splash-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg-dark);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    transition: opacity 0.8s ease, visibility 0.8s;
+}
+
+.splash-screen.fade-out {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.splash-content {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: 2.5rem;
+    border-radius: 30px;
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    animation: splashEntrance 1.2s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.splash-logo {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--primary);
+    box-shadow: 0 0 30px rgba(99, 102, 241, 0.4);
+    animation: logoPulse 2.5s infinite ease-in-out;
+}
+
+.splash-loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.splash-timer-container {
+    display: none;
+    margin-top: 15px;
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    animation: fadeIn 0.8s ease;
+}
+
+.splash-timer {
+    font-size: 3rem;
+    font-weight: 800;
+    background: linear-gradient(to bottom, #fff, var(--primary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -1px;
+}
+
+.splash-message {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    max-width: 280px;
+    line-height: 1.5;
+    text-align: center;
+}
+
+@keyframes splashEntrance {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes logoPulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+        border-color: var(--primary);
+    }
+
+    50% {
+        transform: scale(1.08);
+        box-shadow: 0 0 40px rgba(99, 102, 241, 0.7);
+        border-color: var(--secondary);
+    }
+
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+        border-color: var(--primary);
+    }
 }

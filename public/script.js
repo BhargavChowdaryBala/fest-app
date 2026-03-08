@@ -24,7 +24,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     initBackgroundAnimation();
-    initSplashScreen();
 
     const loginSection = document.getElementById('login-section');
     const registerSection = document.getElementById('register-section');
@@ -85,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
             window.showSplash();
 
             try {
-                const res = await fetch(`${BACKEND_URL}/api/signup`, {
+                const res = await fetch(getApiUrl('/api/signup'), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name, whatsappNumber: identifier, email, password })
@@ -124,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
             window.showSplash();
 
             try {
-                const res = await fetch(`${BACKEND_URL}/api/login`, {
+                const res = await fetch(getApiUrl('/api/login'), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ identifier, password })
@@ -202,7 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             try {
-                const res = await fetch(`${BACKEND_URL}/api/forgot-password`, {
+                const res = await fetch(getApiUrl('/api/forgot-password'), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email })
@@ -348,91 +347,5 @@ document.addEventListener('DOMContentLoaded', () => {
             el.remove();
             spawnShape(container, colors, shapes);
         };
-    }
-
-    function initSplashScreen() {
-        const splash = document.getElementById('splash-screen');
-        const sentenceEl = document.getElementById('loading-sentence');
-        if (!splash || !sentenceEl) return;
-
-        const sentences = [
-            "Igniting the Fest Spirit...",
-            "Waking up the server...",
-            "Rolling out the red carpet...",
-            "Preparing the main stage...",
-            "Tuning the instruments...",
-            "Spotlight is warming up..."
-        ];
-
-        let sentenceIndex = 0;
-
-        // Rotate Sentences every 2 seconds
-        const textInterval = setInterval(() => {
-            if (splash.style.display !== 'none') {
-                sentenceEl.style.opacity = 0;
-                setTimeout(() => {
-                    sentenceIndex = (sentenceIndex + 1) % sentences.length;
-                    sentenceEl.textContent = sentences[sentenceIndex];
-                    sentenceEl.style.opacity = 1;
-                }, 500);
-            }
-        }, 2500);
-
-        // Ping Backend Loop
-        const startTime = Date.now();
-        const minDisplayTime = 2000;
-        let isDismissed = false;
-
-        const pingBackend = async () => {
-            if (isDismissed) return;
-
-            try {
-                // We use a timeout signal for the fetch itself so we don't hang forever on one request
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s per request
-
-                const res = await fetch(`${BACKEND_URL}/api/config`, { signal: controller.signal });
-                clearTimeout(timeoutId);
-
-                if (res.ok) {
-                    // Backend is Awake!
-                    const elapsedTime = Date.now() - startTime;
-                    const remainingTime = Math.max(0, minDisplayTime - elapsedTime);
-
-                    setTimeout(() => {
-                        dismissSplash();
-                    }, remainingTime);
-                } else {
-                    throw new Error('Backend responded but not ready');
-                }
-            } catch (err) {
-                console.log("Waiting for backend...", err.message);
-                // Retry after 2 seconds
-                setTimeout(pingBackend, 2000);
-            }
-        };
-
-        // Start Pinging
-        pingBackend();
-
-        // Safety Force Dismiss after 60 seconds (Render usually wakes up in 30-50s)
-        setTimeout(() => {
-            if (!isDismissed) {
-                console.warn("Backend wake up timeout - forcing entry");
-                dismissSplash();
-            }
-        }, 60000);
-
-        function dismissSplash() {
-            if (isDismissed) return;
-            isDismissed = true;
-
-            clearInterval(textInterval);
-            splash.classList.add('fade-out');
-
-            setTimeout(() => {
-                splash.style.display = 'none';
-            }, 800);
-        }
     }
 });
