@@ -336,6 +336,28 @@ app.post('/api/items', adminAuth, upload.single('image'), async (req, res) => {
     }
 });
 
+// Update Item Price (Admin)
+app.patch('/api/items/:id', adminAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { price } = req.body;
+
+        if (price === undefined || isNaN(price)) {
+            return res.status(400).json({ message: 'Valid price is required' });
+        }
+
+        const result = await Item.findByIdAndUpdate(id, { price: Number(price) }, { new: true });
+
+        if (!result) {
+            return res.status(404).json({ message: 'Item not found' });
+        }
+
+        res.json({ message: 'Price updated successfully', item: result });
+    } catch (error) {
+        res.status(500).json({ message: 'Error updating price', error: error.message });
+    }
+});
+
 // Delete Item (Admin)
 app.delete('/api/items/:id', adminAuth, async (req, res) => {
     try {
