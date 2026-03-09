@@ -40,7 +40,7 @@ const app = express();
 // Middleware
 app.use(cors({
     origin: '*', // Allow all origins explicitly to fix CORS issues
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-pin']
 }));
 app.use(express.json());
