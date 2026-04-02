@@ -440,6 +440,10 @@
                     style="display: flex; align-items: center; gap: 8px;">
                     <i class="bi bi-box-arrow-right"></i> Logout
                 </button>
+                <button id="profile-btn" class="logout-btn" 
+                    style="background: rgba(255, 255, 255, 0.15); border-radius: 50%; width: 40px; height: 40px; padding: 0; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255, 255, 255, 0.3);">
+                    <i class="bi bi-person-circle" style="font-size: 1.5rem; color: white;"></i>
+                </button>
             </div>
         </div>
     </nav>
@@ -606,6 +610,46 @@
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
             opacity: 0.9;
         }
+
+        /* Profile Modal Styles */
+        .profile-info {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .profile-label {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+        .profile-value {
+            color: white;
+            font-weight: 500;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        .form-group input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            border-radius: 8px;
+            color: white;
+            outline: none;
+        }
+        .form-group input:focus {
+            border-color: #6366f1;
+        }
     </style>
 
     <div class="main-container">
@@ -671,6 +715,36 @@
             <div class="modal-body" id="orders-list">
                 <!-- Orders will be loaded here -->
                 <div style="text-align: center; color: #94a3b8; padding: 2rem;">Loading orders...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div class="modal-overlay" id="profile-modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2 class="modal-title">My Profile</h2>
+                <button class="close-modal" id="close-profile-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="profile-info">
+                    <div class="profile-label">Email Address</div>
+                    <div class="profile-value" id="profile-email">loading...</div>
+                </div>
+
+                <div class="change-password-section">
+                    <h3 style="color: white; margin-bottom: 1rem; font-size: 1.1rem;">Change Password</h3>
+                    <div class="form-group">
+                        <label>New Password</label>
+                        <input type="password" id="new-password" placeholder="At least 6 characters">
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm Password</label>
+                        <input type="password" id="confirm-password" placeholder="Repeat new password">
+                    </div>
+                    <button id="update-password-btn" class="btn-checkout" style="margin-top: 1rem;">Update Password</button>
+                    <p id="password-msg" style="margin-top: 10px; font-size: 0.9rem; text-align: center;"></p>
+                </div>
             </div>
         </div>
     </div>
@@ -1371,6 +1445,76 @@
                 mainContainer.classList.remove('blur-active');
             }
         }
+
+        // Profile Modal Logic
+        const profileBtn = document.getElementById('profile-btn');
+        const profileModal = document.getElementById('profile-modal');
+        const closeProfileBtn = document.getElementById('close-profile-modal');
+        const profileEmail = document.getElementById('profile-email');
+        const updatePasswordBtn = document.getElementById('update-password-btn');
+        const passwordMsg = document.getElementById('password-msg');
+
+        function toggleProfileModal(show) {
+            if (show) {
+                profileEmail.textContent = currentUser ? currentUser.email : 'Guest';
+                profileModal.classList.add('active');
+            } else {
+                profileModal.classList.remove('active');
+            }
+        }
+
+        profileBtn.addEventListener('click', () => toggleProfileModal(true));
+        closeProfileBtn.addEventListener('click', () => toggleProfileModal(false));
+        profileModal.addEventListener('click', (e) => {
+            if (e.target === profileModal) toggleProfileModal(false);
+        });
+
+        updatePasswordBtn.addEventListener('click', async () => {
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+
+            if (!newPassword || newPassword.length < 6) {
+                passwordMsg.style.color = '#ef4444';
+                passwordMsg.textContent = 'Password must be at least 6 characters.';
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                passwordMsg.style.color = '#ef4444';
+                passwordMsg.textContent = 'Passwords do not match.';
+                return;
+            }
+
+            updatePasswordBtn.disabled = true;
+            updatePasswordBtn.textContent = 'Updating...';
+
+            try {
+                const res = await fetch(getApiUrl('/api/change-password'), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ newPassword })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    passwordMsg.style.color = '#22c55e';
+                    passwordMsg.textContent = 'Password updated successfully!';
+                    document.getElementById('new-password').value = '';
+                    document.getElementById('confirm-password').value = '';
+                } else {
+                    throw new Error(data.message);
+                }
+            } catch (err) {
+                passwordMsg.style.color = '#ef4444';
+                passwordMsg.textContent = err.message;
+            } finally {
+                updatePasswordBtn.disabled = false;
+                updatePasswordBtn.textContent = 'Update Password';
+            }
+        });
 
         // Initialize total on load
         updateTotal();

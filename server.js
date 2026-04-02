@@ -93,6 +93,20 @@ const adminAuth = (req, res, next) => {
     }
 };
 
+// Middleware to protect user routes (JWT)
+const userAuth = (req, res, next) => {
+    const token = req.headers['authorization']?.split(' ')[1];
+    if (!token) return res.status(401).json({ message: 'Access Denied: No Token Provided' });
+
+    try {
+        const verified = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = verified;
+        next();
+    } catch (err) {
+        res.status(400).json({ message: 'Invalid Token' });
+    }
+};
+
 // Database Connection
 mongoose.connect(process.env.MONGO_URI, { dbName: 'fest_users' })
     .then(() => console.log('MongoDB Connected to fest_users'))
@@ -187,49 +201,28 @@ app.post('/api/login', async (req, res) => {
 
 // Google Login Endpoint
 app.post('/api/auth/google', async (req, res) => {
+    // ... code ...
+});
+
+// Change Password
+app.post('/api/change-password', userAuth, async (req, res) => {
     try {
-        const { credential } = req.body;
+        const { newPassword } = req.body;
+        const userId = req.user.id;
 
-        // Verify Google ID Token
-        const ticket = await googleClient.verifyIdToken({
-            idToken: credential,
-            audience: process.env.GOOGLE_CLIENT_ID
-        });
-
-        const payload = ticket.getPayload();
-        const { email, name, picture, sub: googleId } = payload;
-
-        // Check if user exists (by email)
-        let user = await UserDetails.findOne({ email });
-
-        if (!user) {
-            // New User - Auto Registration
-            user = new UserDetails({
-                name,
-                email,
-                // whatsappNumber is left undefined/null for google users
-                password: await bcrypt.hash(crypto.randomBytes(16).toString('hex'), 10), // Random password
-                googleId: googleId
-            });
-            await user.save();
+        if (!newPassword || newPassword.length < 6) {
+            return res.status(400).json({ message: 'Password must be at least 6 characters long' });
         }
 
-        // Create JWT token
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
 
-        res.json({
-            token,
-            user: {
-                id: user._id,
-                name: user.name,
-                whatsappNumber: user.whatsappNumber,
-                email: user.email
-            }
-        });
+        await UserDetails.findByIdAndUpdate(userId, { password: hashedPassword });
 
+        res.json({ message: 'Password updated successfully' });
     } catch (error) {
-        console.error('Google Auth Error:', error);
-        res.status(401).json({ message: 'Google Authentication failed', error: error.message });
+        console.error('Change Password Error:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
 
