@@ -22,6 +22,7 @@
         }
     </style>
     <script src="config.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
 <body>
@@ -155,6 +156,13 @@
                 </div>
 
                 <button type="submit" class="btn">Enter Void</button>
+                
+                <!-- Google Login Button Container -->
+                <div id="google-login-container" class="google-signin-section">
+                    <div class="google-separator">OR</div>
+                    <div id="g_id_signin"></div>
+                </div>
+
                 <div id="login-message" class="message hidden"></div>
 
                 <div class="toggle-link">

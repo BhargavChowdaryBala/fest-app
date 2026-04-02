@@ -8,8 +8,7 @@ const userDetailsSchema = new mongoose.Schema({
     },
     whatsappNumber: {
         type: String,
-        required: true,
-        unique: true,
+        required: false, // Optional for Google users
         trim: true
     },
     email: {
@@ -18,6 +17,11 @@ const userDetailsSchema = new mongoose.Schema({
         unique: true,
         trim: true,
         lowercase: true
+    },
+    googleId: {
+        type: String,
+        unique: true,
+        sparse: true // Allows multiple null/undefined values
     },
     password: {
         type: String,

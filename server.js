@@ -13,6 +13,8 @@ const Item = require('./models/Item');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 const Razorpay = require('razorpay');
+const { OAuth2Client } = require('google-auth-library');
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Email Transporter Configuration (Gmail App Password)
 // Email Transporter Configuration (Gmail App Password)
@@ -58,7 +60,8 @@ app.use((err, req, res, next) => {
 app.get('/api/config', (req, res) => {
     res.json({
         merchantName: process.env.MERCHANT_NAME,
-        razorpayKeyId: process.env.RAZORPAY_KEY_ID // Send Key ID to frontend
+        razorpayKeyId: process.env.RAZORPAY_KEY_ID, // Send Key ID to frontend
+        googleClientId: process.env.GOOGLE_CLIENT_ID
     });
 });
 
@@ -104,13 +107,20 @@ app.post('/api/signup', async (req, res) => {
     try {
         const { name, whatsappNumber, email, password } = req.body;
 
-        // Check if user exists
-        const existingUser = await UserDetails.findOne({
-            $or: [{ whatsappNumber }, { email }]
-        });
+        // Check if user exists (Check email first as it's the primary unique key)
+        const emailUser = await UserDetails.findOne({ email });
+        if (emailUser) {
+            return res.status(400).json({ message: 'User with this Email already exists' });
+        }
 
-        if (existingUser) {
-            return res.status(400).json({ message: 'User with this WhatsApp or Email already exists' });
+        // Traditional signup: Whatsapp is required and should be unique among traditional users
+        if (!whatsappNumber) {
+            return res.status(400).json({ message: 'WhatsApp number is required for registration' });
+        }
+
+        const whatsappUser = await UserDetails.findOne({ whatsappNumber });
+        if (whatsappUser) {
+            return res.status(400).json({ message: 'User with this WhatsApp number already exists' });
         }
 
         // Validate Mobile Number
@@ -172,6 +182,54 @@ app.post('/api/login', async (req, res) => {
         res.json({ token, user: { id: user._id, name: user.name, whatsappNumber: user.whatsappNumber, email: user.email } });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
+// Google Login Endpoint
+app.post('/api/auth/google', async (req, res) => {
+    try {
+        const { credential } = req.body;
+
+        // Verify Google ID Token
+        const ticket = await googleClient.verifyIdToken({
+            idToken: credential,
+            audience: process.env.GOOGLE_CLIENT_ID
+        });
+
+        const payload = ticket.getPayload();
+        const { email, name, picture, sub: googleId } = payload;
+
+        // Check if user exists (by email)
+        let user = await UserDetails.findOne({ email });
+
+        if (!user) {
+            // New User - Auto Registration
+            user = new UserDetails({
+                name,
+                email,
+                // whatsappNumber is left undefined/null for google users
+                password: await bcrypt.hash(crypto.randomBytes(16).toString('hex'), 10), // Random password
+                googleId: googleId
+            });
+            await user.save();
+        }
+
+        // Create JWT token
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+        res.json({
+            token,
+            user: {
+                id: user._id,
+                name: user.name,
+                whatsappNumber: user.whatsappNumber,
+                email: user.email
+            }
+        });
+
+    } catch (error) {
+        console.error('Google Auth Error:', error);
+        res.status(401).json({ message: 'Google Authentication failed', error: error.message });
     }
 });
 

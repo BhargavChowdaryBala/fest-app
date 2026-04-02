@@ -348,4 +348,78 @@ document.addEventListener('DOMContentLoaded', () => {
             spawnShape(container, colors, shapes);
         };
     }
+
+    // === GOOGLE AUTH LOGIC ===
+    async function initGoogleAuth() {
+        try {
+            // 1. Fetch Client ID from backend config
+            const response = await fetch(getApiUrl('/api/config'));
+            const config = await response.json();
+
+            if (!config.googleClientId) {
+                console.warn('Google Client ID not found in config');
+                document.getElementById('google-login-container').style.display = 'none';
+                return;
+            }
+
+            // 2. Initialize Google Auth
+            google.accounts.id.initialize({
+                client_id: config.googleClientId,
+                callback: handleGoogleResponse
+            });
+
+            // 3. Unhide container
+            const container = document.getElementById('google-login-container');
+            if (container) container.style.display = 'flex';
+
+            // 4. Render Button
+            google.accounts.id.renderButton(
+                document.getElementById('g_id_signin'),
+                {
+                    theme: 'outline',
+                    size: 'large',
+                    text: 'signin_with',
+                    shape: 'pill', // Matching the "Enter Void" button shape
+                    width: '320', // Best fit for 400px wrapper with padding
+                    logo_alignment: 'left'
+                }
+            );
+
+        } catch (error) {
+            console.error('Failed to initialize Google Auth:', error);
+        }
+    }
+
+    async function handleGoogleResponse(response) {
+        // Show Splash
+        window.showSplash();
+
+        try {
+            const res = await fetch(getApiUrl('/api/auth/google'), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ credential: response.credential })
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                // Success
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+
+                // Redirect
+                window.location.href = '/hi.html';
+            } else {
+                throw new Error(data.message || 'Google Auth failed');
+            }
+        } catch (error) {
+            console.error(error);
+            window.dismissSplash();
+            alert(error.message);
+        }
+    }
+
+    // Start Google Auth
+    setTimeout(initGoogleAuth, 1000); // Small delay to ensure script is loaded
 });

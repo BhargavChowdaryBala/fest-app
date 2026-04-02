@@ -480,6 +480,58 @@ h2 {
     /* SVG implementation */
 }
 
+/* === GOOGLE SIGN-IN UI POLISH === */
+.google-signin-section {
+    width: 100%;
+    margin-top: 1.5rem;
+    display: none; /* Controlled by script.js */
+    flex-direction: column;
+    align-items: center;
+    gap: 1.2rem;
+    animation: fadeInSlideUp 0.8s ease-out forwards;
+}
+
+.google-separator {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 15px;
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.google-separator::before,
+.google-separator::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+}
+
+#g_id_signin {
+    transition: transform 0.3s ease, filter 0.3s ease;
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.1));
+}
+
+#g_id_signin:hover {
+    transform: scale(1.02);
+    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.3));
+}
+
+@keyframes fadeInSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* Animations are now handled in JS via Web Animations API for full screen drift */
 
 /* --- Splash Screen --- */
