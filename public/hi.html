@@ -4,11 +4,19 @@
 <head>
     <script>
         const token = localStorage.getItem('token');
-        const user = localStorage.getItem('user');
+        const userStr = localStorage.getItem('user');
+        let currentUser = null;
 
-        if (!token || !user) {
+        if (!token || !userStr) {
             // Not logged in → kick back to login
             window.location.href = '/index.html';
+        } else {
+            try {
+                currentUser = JSON.parse(userStr);
+            } catch (e) {
+                console.error("Failed to parse user session", e);
+                window.location.href = '/index.html';
+            }
         }
     </script>
 
@@ -689,24 +697,46 @@
     <script>
         const itemsGrid = document.getElementById('items-grid');
         const payBtn = document.getElementById('pay-btn');
-
         let cart = {}; // { ItemName: { price: 100, qty: 1 } }
         let allItems = []; // Store fetched items
+        
+        // --- NAMESPACED CART LOGIC ---
+        // 1. Determine key (e.g. cart_bhargav@gmail.com)
+        const cartKey = currentUser ? `cart_${currentUser.email}` : 'cart_guest';
 
-        // Initialize Cart from LocalStorage
-        const savedCart = localStorage.getItem('cart');
-        if (savedCart) {
-            try {
-                cart = JSON.parse(savedCart);
-            } catch (e) {
-                console.error("Failed to parse saved cart", e);
-                cart = {};
+        function loadCartFromStorage() {
+            // Check for namespaced cart
+            const savedCart = localStorage.getItem(cartKey);
+            
+            if (savedCart) {
+                try {
+                    cart = JSON.parse(savedCart);
+                } catch (e) {
+                    console.error("Failed to parse saved cart", e);
+                    cart = {};
+                }
+            } else {
+                // Check if there's an old guest cart to migrate
+                const guestCart = localStorage.getItem('cart_guest') || localStorage.getItem('cart');
+                if (guestCart && currentUser) {
+                    try {
+                        cart = JSON.parse(guestCart);
+                        console.log("Migrating guest cart to user session");
+                        // Clear the old quest carts
+                        localStorage.removeItem('cart_guest');
+                        localStorage.removeItem('cart');
+                    } catch (e) { cart = {}; }
+                }
             }
+            saveCart();
         }
 
         function saveCart() {
-            localStorage.setItem('cart', JSON.stringify(cart));
+            localStorage.setItem(cartKey, JSON.stringify(cart));
         }
+
+        // Initialize Cart
+        loadCartFromStorage();
 
         // Fetch Items
         async function loadItems() {
@@ -1190,6 +1220,7 @@
 
         document.getElementById('logout-btn').addEventListener('click', () => {
             localStorage.removeItem('token');
+            localStorage.removeItem('user');
             window.location.href = '/index.html';
         });
 
