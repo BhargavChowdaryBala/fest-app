@@ -201,7 +201,50 @@ app.post('/api/login', async (req, res) => {
 
 // Google Login Endpoint
 app.post('/api/auth/google', async (req, res) => {
-    // ... code ...
+    try {
+        const { credential } = req.body;
+
+        // Verify Google ID Token
+        const ticket = await googleClient.verifyIdToken({
+            idToken: credential,
+            audience: process.env.GOOGLE_CLIENT_ID
+        });
+
+        const payload = ticket.getPayload();
+        const { email, name, picture, sub: googleId } = payload;
+
+        // Check if user exists (by email)
+        let user = await UserDetails.findOne({ email });
+
+        if (!user) {
+            // New User - Auto Registration
+            user = new UserDetails({
+                name,
+                email,
+                // whatsappNumber is left undefined/null for google users
+                password: await bcrypt.hash(crypto.randomBytes(16).toString('hex'), 10), // Random password
+                googleId: googleId
+            });
+            await user.save();
+        }
+
+        // Create JWT token
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+        res.json({
+            token,
+            user: {
+                id: user._id,
+                name: user.name,
+                whatsappNumber: user.whatsappNumber,
+                email: user.email
+            }
+        });
+
+    } catch (error) {
+        console.error('Google Auth Error:', error);
+        res.status(401).json({ message: 'Google Authentication failed', error: error.message });
+    }
 });
 
 // Change Password
