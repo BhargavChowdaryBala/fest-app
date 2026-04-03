@@ -1,3 +1,7 @@
+/**
+ * USER MODEL (LEGACY) - Archive User Support
+ * Used for maintaining old login credentials during migration.
+ */
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({

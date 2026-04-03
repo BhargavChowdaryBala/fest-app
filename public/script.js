@@ -1,3 +1,8 @@
+/**
+ * SCRIPT.JS - Terminal & Auth Controller
+ * Manages the "Terminal" feel, landing page animations,
+ * login/signup requests, and the Google Sign-In flow.
+ */
 const BACKEND_URL = "https://fest-app-backend.onrender.com";
 
 document.addEventListener('DOMContentLoaded', () => {

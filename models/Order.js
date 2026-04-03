@@ -1,3 +1,7 @@
+/**
+ * ORDER MODEL - Schema for Customer Purchases
+ * Tracks unique order IDs, transaction IDs, status, and purchased items.
+ */
 const mongoose = require('mongoose');
 
 const orderSchema = new mongoose.Schema({

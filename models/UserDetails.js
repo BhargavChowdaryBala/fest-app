@@ -1,3 +1,7 @@
+/**
+ * USERDETAILS MODEL - Primary User Profile Schema
+ * Handles user authentication data, contact info, and Google Identity links.
+ */
 const mongoose = require('mongoose');
 
 const userDetailsSchema = new mongoose.Schema({

@@ -1,3 +1,7 @@
+/**
+ * ITEM MODEL - Schema for Menu Products
+ * Defines the structure for items in the catalog (Name, Price, Image, etc).
+ */
 const mongoose = require('mongoose');
 
 const itemSchema = new mongoose.Schema({
