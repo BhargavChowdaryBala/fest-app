@@ -2,7 +2,7 @@
  * ORDER MODEL - Schema for Customer Purchases
  * Tracks unique order IDs, transaction IDs, status, and purchased items.
  */
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const orderSchema = new mongoose.Schema({
     uniqueId: {
@@ -28,4 +28,4 @@ const orderSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-module.exports = mongoose.model('Order', orderSchema);
+export default mongoose.model('Order', orderSchema);

@@ -2,7 +2,7 @@
  * USER MODEL (LEGACY) - Archive User Support
  * Used for maintaining old login credentials during migration.
  */
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema({
   username: {
@@ -22,4 +22,4 @@ const userSchema = new mongoose.Schema({
   collection: 'usernames'
 });
 
-module.exports = mongoose.model('User', userSchema);
+export default mongoose.model('User', userSchema);

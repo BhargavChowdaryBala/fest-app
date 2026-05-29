@@ -2,7 +2,7 @@
  * USERDETAILS MODEL - Primary User Profile Schema
  * Handles user authentication data, contact info, and Google Identity links.
  */
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const userDetailsSchema = new mongoose.Schema({
     name: {
@@ -39,4 +39,4 @@ const userDetailsSchema = new mongoose.Schema({
     collection: 'user_details'
 });
 
-module.exports = mongoose.model('UserDetails', userDetailsSchema);
+export default mongoose.model('UserDetails', userDetailsSchema);
